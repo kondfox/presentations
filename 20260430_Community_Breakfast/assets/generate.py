@@ -763,6 +763,15 @@ if (new URLSearchParams(location.search).get('mode') === 'presenter') {
   return; // stop rest of init for presenter window
 }
 
+// ── Fullscreen ───────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    (document.documentElement.requestFullscreen?.() || Promise.reject()).catch(()=>{});
+  } else {
+    document.exitFullscreen?.();
+  }
+}
+
 // ── Keyboard ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
   if (blackoutOn && e.key !== 'b' && e.key !== 'B') return;
@@ -772,6 +781,7 @@ document.addEventListener('keydown', (e) => {
     case 'Escape': toggleOverview(); break;
     case 'b': case 'B': toggleBlackout(); break;
     case 'p': case 'P': openPresenter(); break;
+    case 'f': case 'F': toggleFullscreen(); break;
   }
 });
 
