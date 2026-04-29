@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Presentations — Péter Tamás</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --fg: #1a1a1a;
+    --muted: #666;
+    --bg: #fafafa;
+    --accent: #0066cc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #eaeaea; --muted: #999; --bg: #111; --accent: #66aaff; }
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    max-width: 640px;
+    margin: 4rem auto;
+    padding: 0 1.5rem;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); margin-top: 0; margin-bottom: 2rem; }
+  ul { list-style: none; padding: 0; }
+  li { padding: 0.75rem 0; border-bottom: 1px solid color-mix(in srgb, var(--muted) 25%, transparent); }
+  li:last-child { border-bottom: none; }
+  a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  a:hover { text-decoration: underline; }
+  .date { color: var(--muted); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+  <h1>Presentations</h1>
+  <p class="subtitle">Péter Tamás — Bobcats Coding</p>
+  <ul>
+    <li>
+      <div class="date">2026-04-30 · Community Breakfast</div>
+      <a href="./20260430_Community_Breakfast/">Cheaper code, guided by more expensive engineers</a>
+    </li>
+  </ul>
+</body>
+</html>
