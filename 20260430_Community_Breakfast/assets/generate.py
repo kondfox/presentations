@@ -506,6 +506,16 @@ SLIDES_HTML = f"""
     <div class="body-sm dim center" style="font-size:34px;">Questions? Let's talk.</div>
   </div>
 </div>
+
+<!-- 10.5 Link to this presentation -->
+<div class="slide bg-dark" id="s10-5" data-id="10.5" data-section="10" data-anim="qr-fade" data-notes="Final slide — share the deck."
+     data-qr-url="https://kondfox.github.io/presentations/20260430_Community_Breakfast/">
+  <div class="hold-frame-link" style="display:flex;flex-direction:column;align-items:center;gap:56px;">
+    <img src="assets/bobcats-logo.png" alt="Bobcats Coding" style="height:160px;object-fit:contain;filter:brightness(1.1);">
+    <div class="h3 green center" style="letter-spacing:.15em;">Link to this presentation</div>
+    <div class="qr-wrap"><canvas class="qr-canvas" data-qr-id="qr-10-5" style="width:280px;height:280px;"></canvas><div class="qr-label">Scan to open</div></div>
+  </div>
+</div>
 """
 
 # ── JavaScript ────────────────────────────────────────────────────────────────
@@ -914,7 +924,7 @@ const ANIMS = {
     gsap.from(container, { opacity: 0, y: 24, duration: 0.5, ease: 'power2.out' });
   },
   'qr-fade': (el) => {
-    const hf = el.querySelector('#hold-frame');
+    const hf = el.querySelector('#hold-frame, .hold-frame-link');
     if (hf) gsap.from(hf.children, { opacity: 0, y: 20, stagger: 0.1, duration: 0.6, ease: 'power2.out' });
   },
   'fade-up': (el) => {
