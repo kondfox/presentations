@@ -792,6 +792,34 @@ document.addEventListener('mousemove', () => {
   mouseMoveTimer = setTimeout(() => { document.body.style.cursor = 'none'; }, 2000);
 });
 
+// ── Touch navigation (mobile) ────────────────────────────────────────────────
+// Swipe horizontally to change slide; tap left/right half also navigates.
+let touchStartX = 0, touchStartY = 0, touchStartT = 0;
+document.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 1) return;
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+  touchStartT = Date.now();
+}, { passive: true });
+document.addEventListener('touchend', (e) => {
+  if (blackoutOn || overviewOpen) return;
+  const t = e.changedTouches[0];
+  if (!t) return;
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  const adx = Math.abs(dx), ady = Math.abs(dy);
+  const dt = Date.now() - touchStartT;
+  // Horizontal swipe
+  if (adx > 50 && adx > ady * 1.5 && dt < 800) {
+    if (dx < 0) next(); else prev();
+    return;
+  }
+  // Quick tap: left half = prev, right half = next
+  if (adx < 10 && ady < 10 && dt < 400) {
+    if (t.clientX > window.innerWidth / 2) next(); else prev();
+  }
+}, { passive: true });
+
 // ── QR codes ─────────────────────────────────────────────────────────────────
 function makeQR(canvas, url) {
   try {
@@ -988,7 +1016,7 @@ HTML = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=1920">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Cheaper code, guided by more expensive engineers — Bobcats Coding</title>
 <style>{CSS}</style>
 </head>
