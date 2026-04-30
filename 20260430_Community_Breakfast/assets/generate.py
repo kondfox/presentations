@@ -102,6 +102,16 @@ html,body{{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-fami
 .footnote{{position:absolute;bottom:44px;left:120px;font-size:28px;opacity:.4;letter-spacing:.04em;}}
 /* hand */
 #hand-svg{{filter:drop-shadow(0 0 80px rgba(249,199,216,.2));}}
+/* 0.1 title pre-show */
+.title-slide{{padding:0;background:#334258;color:#FCE3EB;overflow:hidden;}}
+.schematic-svg{{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;}}
+.title-block{{position:absolute;top:170px;left:140px;z-index:3;max-width:1640px;}}
+.title-line{{font-family:'Bai Jamjuree',sans-serif;font-weight:500;font-size:180px;letter-spacing:.08em;line-height:.9;text-transform:uppercase;color:#FCE3EB;}}
+.speaker-block{{position:absolute;bottom:110px;left:140px;z-index:3;}}
+.speaker-divider{{width:72px;height:2px;background:#E1E281;margin-bottom:26px;}}
+.speaker-name{{font-family:'Bai Jamjuree',sans-serif;font-weight:500;font-size:38px;letter-spacing:.14em;text-transform:uppercase;color:#FCE3EB;margin-bottom:10px;}}
+.speaker-role{{font-family:'Bai Jamjuree',sans-serif;font-weight:400;font-size:24px;letter-spacing:.12em;text-transform:uppercase;color:rgba(252,227,235,.55);}}
+.title-logo{{position:absolute;bottom:114px;right:140px;height:60px;filter:brightness(0) invert(1);opacity:.5;z-index:3;}}
 """
 
 # ── SVG: raised hand ─────────────────────────────────────────────────────────
@@ -237,6 +247,22 @@ def qr_cell(qr_id, label="AI Field Notes"):
     return f"""<div class="qr-wrap"><canvas id="{qr_id}" data-qr-url=""></canvas><div class="qr-label">{label}</div></div>"""
 
 SLIDES_HTML = f"""
+<!-- 0.1 Title pre-show (held while audience files in) -->
+<div class="slide title-slide" id="s0-1" data-id="0.1" data-section="0" data-section-title="" data-anim="title-0-1" data-notes="Hold this slide while audience files in. Background animates indefinitely.">
+  <svg class="schematic-svg" viewBox="0 0 1920 1080" preserveAspectRatio="none"></svg>
+  <div class="title-block">
+    <div class="title-line" style="color:#E1E281;">New Era</div>
+    <div class="title-line">In Software</div>
+    <div class="title-line">Development</div>
+  </div>
+  <div class="speaker-block">
+    <div class="speaker-divider"></div>
+    <div class="speaker-name"><span style="color:#E1E281;">Peter</span> Tamás</div>
+    <div class="speaker-role">CTO · Bobcats Coding</div>
+  </div>
+  <img class="title-logo" src="assets/bobcats-logo.png" alt="Bobcats Coding">
+</div>
+
 <!-- 1.1 Audience Interaction -->
 <div class="slide bg-dark" id="s1-1" data-id="1.1" data-section="1" data-section-title="Audience Interaction" data-anim="hand" data-notes="Three questions: Raise your hand if you've used an AI coding tool. Keep it up if you've used it in production. Keep it up if it changed how you plan.">
   {HAND_SVG}
@@ -546,6 +572,82 @@ if (curSec) curSec.end = TOTAL - 1;
 let carouselIndex = 0;
 function getCarouselFrames(el) { return Array.from(el.querySelectorAll('.c-frame')); }
 
+// Title-slide entrance has run? (only animates on first load)
+let titleEntered = false;
+
+// Slow ambient schematic field for slide 0.1 — once started, runs forever.
+function startSchematicField(svg) {
+  if (svg._started) return;
+  svg._started = true;
+  const NS = 'http://www.w3.org/2000/svg';
+  const W = 1920, H = 1080;
+  const MAX = 14;
+
+  function spawn() {
+    if (svg.children.length >= MAX) return;
+    const r = Math.random();
+    let el, length;
+    if (r < 0.45) {
+      const x1 = Math.random() * W, y1 = Math.random() * H;
+      const orth = Math.random() < 0.65;
+      const angle = orth ? (Math.random() < 0.5 ? 0 : Math.PI / 2) : Math.random() * Math.PI * 2;
+      const len = 140 + Math.random() * 460;
+      const x2 = x1 + Math.cos(angle) * len, y2 = y1 + Math.sin(angle) * len;
+      el = document.createElementNS(NS, 'line');
+      el.setAttribute('x1', x1); el.setAttribute('y1', y1);
+      el.setAttribute('x2', x2); el.setAttribute('y2', y2);
+      length = Math.hypot(x2 - x1, y2 - y1);
+    } else if (r < 0.75) {
+      const w = 110 + Math.random() * 280, h = 80 + Math.random() * 180;
+      const x = Math.random() * (W - w), y = Math.random() * (H - h);
+      el = document.createElementNS(NS, 'rect');
+      el.setAttribute('x', x); el.setAttribute('y', y);
+      el.setAttribute('width', w); el.setAttribute('height', h);
+      el.setAttribute('rx', 4);
+      length = (w + h) * 2;
+    } else if (r < 0.9) {
+      const x1 = Math.random() * W, y1 = Math.random() * H;
+      const dx = (Math.random() < 0.5 ? -1 : 1) * (170 + Math.random() * 280);
+      const dy = (Math.random() < 0.5 ? -1 : 1) * (170 + Math.random() * 280);
+      el = document.createElementNS(NS, 'polyline');
+      el.setAttribute('points', `${x1},${y1} ${x1+dx},${y1} ${x1+dx},${y1+dy}`);
+      length = Math.abs(dx) + Math.abs(dy);
+    } else {
+      const r2 = 36 + Math.random() * 76;
+      const cx = r2 + Math.random() * (W - r2 * 2);
+      const cy = r2 + Math.random() * (H - r2 * 2);
+      el = document.createElementNS(NS, 'circle');
+      el.setAttribute('cx', cx); el.setAttribute('cy', cy);
+      el.setAttribute('r', r2);
+      length = 2 * Math.PI * r2;
+    }
+    el.setAttribute('stroke', '#E1E281');
+    el.setAttribute('stroke-width', '1');
+    el.setAttribute('fill', 'none');
+    el.setAttribute('vector-effect', 'non-scaling-stroke');
+    el.style.opacity = '0';
+    el.style.strokeDasharray = length;
+    el.style.strokeDashoffset = length;
+    svg.appendChild(el);
+    const drawDur = 4.8 + Math.random() * 1.6;
+    const holdDur = 4 + Math.random() * 3.5;
+    const fadeDur = 2.6 + Math.random() * 1.2;
+    const target = 0.16 + Math.random() * 0.18;
+    const tl = gsap.timeline({ onComplete: () => el.remove() });
+    tl.to(el, { opacity: target, duration: 0.8, ease: 'sine.out' }, 0);
+    tl.to(el, { strokeDashoffset: 0, duration: drawDur, ease: 'sine.inOut' }, 0);
+    tl.to(el, { opacity: 0, duration: fadeDur, ease: 'sine.in' }, drawDur + holdDur);
+  }
+  // Pre-populate so the field isn't empty when slide first appears
+  for (let i = 0; i < 6; i++) setTimeout(spawn, i * 700);
+  // Continuous spawning at ambient rate
+  function loop() {
+    spawn();
+    setTimeout(loop, 1600 + Math.random() * 2200);
+  }
+  setTimeout(loop, 4500);
+}
+
 // ── State ───────────────────────────────────────────────────────────────────
 let current = 0;
 let overviewOpen = false;
@@ -638,7 +740,11 @@ function updateUI() {
   const slideInSec = current - (secObj ? secObj.start : 0) + 1;
   const secLen = secObj ? (secObj.end - secObj.start + 1) : 1;
   const secTotal = secObj ? (secObj.end - secObj.start + 1) : 1;
-  counterEl.textContent = `Section ${secObj?.section || 1}  ·  ${String(slideInSec).padStart(2,'0')} / ${String(secTotal).padStart(2,'0')}`;
+  // Section 0 is the pre-show title slide — hide chrome.
+  const preshow = secObj?.section === 0;
+  counterEl.style.display = preshow ? 'none' : '';
+  progressBar.style.display = preshow ? 'none' : '';
+  counterEl.textContent = preshow ? '' : `Section ${secObj?.section || 1}  ·  ${String(slideInSec).padStart(2,'0')} / ${String(secTotal).padStart(2,'0')}`;
 
 
   // Overview highlight
@@ -856,6 +962,28 @@ function initQRCodes() {
 
 // ── Animations ───────────────────────────────────────────────────────────────
 const ANIMS = {
+  'title-0-1': (el) => {
+    const lines = el.querySelectorAll('.title-line');
+    const speaker = el.querySelector('.speaker-block');
+    const logo = el.querySelector('.title-logo');
+    const svg = el.querySelector('.schematic-svg');
+    if (svg) startSchematicField(svg);
+    if (titleEntered) {
+      // Already played the first-load entrance — just ensure foreground is in place.
+      gsap.set(lines, { clipPath: 'inset(0 0% 0 0)', opacity: 1 });
+      if (speaker) gsap.set(speaker, { opacity: 1, y: 0 });
+      if (logo) gsap.set(logo, { opacity: 0.5 });
+      return;
+    }
+    titleEntered = true;
+    lines.forEach((line, i) => {
+      gsap.fromTo(line,
+        { clipPath: 'inset(0 100% 0 0)', opacity: 1 },
+        { clipPath: 'inset(0 0% 0 0)', duration: 0.45, ease: 'power2.out', delay: 0.4 + i * 0.18 });
+    });
+    if (speaker) gsap.from(speaker, { opacity: 0, y: 14, duration: 0.6, ease: 'power2.out', delay: 1.35 });
+    if (logo) gsap.fromTo(logo, { opacity: 0 }, { opacity: 0.5, duration: 0.6, ease: 'power2.out', delay: 1.55 });
+  },
   'hand': (el) => {
     const svg = el.querySelector('svg');
     if (!svg) return;
