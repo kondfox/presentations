@@ -102,7 +102,7 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 .speaker-divider{width:72px;height:2px;background:#E1E281;margin-bottom:26px;}
 .speaker-name{font-family:'Bai Jamjuree',sans-serif;font-weight:500;font-size:38px;letter-spacing:.14em;text-transform:uppercase;color:#FCE3EB;margin-bottom:10px;}
 .speaker-role{font-family:'Bai Jamjuree',sans-serif;font-weight:400;font-size:24px;letter-spacing:.12em;text-transform:uppercase;color:rgba(252,227,235,.55);}
-.title-logo{position:absolute;bottom:114px;right:140px;height:60px;filter:brightness(0) invert(1);opacity:.5;z-index:3;}
+.title-logo{position:absolute;top:0;left:0;height:60px;filter:brightness(0) invert(1);opacity:.5;z-index:3;will-change:transform;}
 </style>
 </head>
 <body>
@@ -621,6 +621,46 @@ function startSchematicField(svg) {
   setTimeout(loop, 4500);
 }
 
+// Slow DVD-style bounce of the title-slide logo.
+function startLogoBounce(logo) {
+  if (logo._bouncing) return;
+  logo._bouncing = true;
+  const W = 1920, H = 1080;
+  const lw = logo.offsetWidth || 60;
+  const lh = logo.offsetHeight || 60;
+  const speed = 55; // px/sec — slow enough to feel ambient
+  let x = W - 140 - lw, y = H - 114 - lh; // start near where it sat originally
+  let angle = Math.random() * Math.PI * 2;
+  let vx = Math.cos(angle) * speed;
+  let vy = Math.sin(angle) * speed;
+  let lastT = performance.now();
+  function tick(now) {
+    const dt = Math.min((now - lastT) / 1000, 0.05); // clamp dt to avoid jumps after tab-switch
+    lastT = now;
+    x += vx * dt; y += vy * dt;
+    let bounced = false;
+    if (x < 0) { x = 0; bounced = true; }
+    else if (x + lw > W) { x = W - lw; bounced = true; }
+    if (y < 0) { y = 0; bounced = true; }
+    else if (y + lh > H) { y = H - lh; bounced = true; }
+    if (bounced) {
+      // Pick a random new direction that doesn't drive back into the wall.
+      for (let i = 0; i < 12; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const nvx = Math.cos(a) * speed, nvy = Math.sin(a) * speed;
+        if (x <= 0 && nvx <= 0) continue;
+        if (x + lw >= W && nvx >= 0) continue;
+        if (y <= 0 && nvy <= 0) continue;
+        if (y + lh >= H && nvy >= 0) continue;
+        vx = nvx; vy = nvy; break;
+      }
+    }
+    logo.style.transform = `translate(${x}px, ${y}px)`;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 // ── State ───────────────────────────────────────────────────────────────────
 let current = 0;
 let overviewOpen = false;
@@ -941,6 +981,7 @@ const ANIMS = {
     const logo = el.querySelector('.title-logo');
     const svg = el.querySelector('.schematic-svg');
     if (svg) startSchematicField(svg);
+    if (logo) startLogoBounce(logo);
     if (titleEntered) {
       // Already played the first-load entrance — just ensure foreground is in place.
       gsap.set(lines, { clipPath: 'inset(0 0% 0 0)', opacity: 1 });
