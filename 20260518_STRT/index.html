@@ -104,8 +104,14 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 .tl-caret{display:inline-block;width:18px;height:140px;margin-left:18px;background:#E1E281;}
 .tl-judgement{color:#E1E281;}
 .title-rule{width:0;height:2px;background:#E1E281;opacity:.7;}
-.title-speaker{display:flex;align-items:center;gap:28px;font-family:'Bai Jamjuree',sans-serif;font-size:28px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:rgba(252,227,235,.78);opacity:0;white-space:nowrap;}
-.title-speaker .speaker-sep{opacity:.4;}
+.title-card{display:flex;align-items:center;gap:36px;opacity:0;}
+.title-photo{width:160px;height:160px;border-radius:50%;object-fit:cover;border:2px solid rgba(225,226,129,.45);flex-shrink:0;box-shadow:0 6px 28px rgba(0,0,0,.35);}
+.title-bio{display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left;}
+.title-name{font-family:'Bai Jamjuree',sans-serif;font-size:44px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#FCE3EB;line-height:1;}
+.title-role{font-family:'Bai Jamjuree',sans-serif;font-size:24px;font-weight:400;letter-spacing:.16em;text-transform:uppercase;color:rgba(252,227,235,.6);line-height:1;}
+.title-card-divider{width:1px;height:120px;background:rgba(252,227,235,.18);}
+.title-qr{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.title-qr-label{font-family:'Bai Jamjuree',sans-serif;font-size:20px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(252,227,235,.6);}
 .title-logo{position:absolute;top:0;left:0;height:60px;filter:brightness(0) invert(1);opacity:.5;z-index:3;will-change:transform;}
 /* obsidian graph background (slide 6.1) */
 .obsidian-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:.55;}
@@ -144,7 +150,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
     <div id="slides-container">
 
 <!-- 0.1 Title pre-show (held while audience files in) -->
-<div class="slide title-slide" id="s0-1" data-id="0.1" data-section="0" data-section-title="" data-anim="title-0-1" data-notes="Hold this slide while audience files in. Background animates indefinitely.">
+<div class="slide title-slide" id="s0-1" data-id="0.1" data-section="0" data-section-title="" data-anim="title-0-1" data-notes="Hold this slide while audience files in. Background animates indefinitely."
+     data-qr-url="https://www.linkedin.com/in/tamas-peter-kond/?trackingId=20260518_STRT">
   <div class="typing-field"></div>
   <div class="title-center">
     <div class="title-headline">
@@ -152,10 +159,17 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
       <div class="title-line tl-judgement" id="tl-judgement">More judgement.</div>
     </div>
     <div class="title-rule" id="title-rule"></div>
-    <div class="title-speaker" id="title-speaker">
-      <span><span style="color:#E1E281;">Péter</span> Tamás</span>
-      <span class="speaker-sep">·</span>
-      <span>CTO · Bobcats Coding</span>
+    <div class="title-card" id="title-speaker">
+      <img class="title-photo" src="assets/profile-kond.jpg" alt="Péter Tamás">
+      <div class="title-bio">
+        <div class="title-name"><span style="color:#E1E281;">Péter</span> Tamás</div>
+        <div class="title-role">CTO · Bobcats Coding</div>
+      </div>
+      <div class="title-card-divider"></div>
+      <div class="title-qr">
+        <canvas class="qr-canvas" data-qr-id="qr-title" style="width:140px;height:140px;"></canvas>
+        <div class="title-qr-label">LinkedIn</div>
+      </div>
     </div>
   </div>
   <img class="title-logo" src="assets/bobcats-logo.png" alt="Bobcats Coding">
@@ -248,7 +262,7 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 
 <!-- 3.4 Takeaway + QR -->
 <div class="slide bg-dark" id="s3-4" data-id="3.4" data-section="3" data-anim="fade-up" data-notes=""
-     data-qr-url="https://www.notion.so/bobcats-coding/Frontend-development-with-Claude-Code-Opus-4-6-Figma-MCP-Playwright-MCP-OpenAPI-spec-32d1c06aab6e80ceb0a3c9872fc704dc">
+     data-qr-url="https://www.linkedin.com/pulse/ai-field-notes-001-frontend-development-finally-getting-pk5sf/?trackingId=20260518_STRT">
   <div style="display:flex;align-items:center;gap:120px;width:100%;">
     <div style="flex:1;">
       <div class="body" style="font-style:italic;font-size:62px;">The leverage came from the spec,<br>not the typing.</div>
@@ -270,7 +284,7 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 
 <!-- 4.3 Takeaway + QR -->
 <div class="slide bg-dark" id="s4-3" data-id="4.3" data-section="4" data-anim="fade-up" data-notes=""
-     data-qr-url="https://www.notion.so/bobcats-coding/Version-checker-hook-Claude-Code-31b1c06aab6e809496c2de877f9b77ab">
+     data-qr-url="https://www.linkedin.com/pulse/ai-field-notes-002-weekly-memos-engineering-leaders-bobcats-coding-s95af/?trackingId=20260518_STRT">
   <div class="body center" style="max-width:1400px;font-style:italic;margin-bottom:80px;">Each small guardrail removes one<br>human-in-the-loop step. They compound.</div>
   <div class="qr-wrap"><canvas class="qr-canvas" data-qr-id="qr-4-3"></canvas><div class="qr-label">AI Field Notes</div></div>
 </div>
@@ -282,7 +296,7 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 
 <!-- 5.2 The quote -->
 <div class="slide bg-pink" id="s5-2" data-id="5.2" data-section="5" data-anim="typewriter" data-notes="This is the most quotable line. Let it breathe."
-     data-qr-url="https://www.notion.so/bobcats-coding/Automating-processes-with-Claude-slash-command-3501c06aab6e800b8e5cd22e57d90206">
+     data-qr-url="https://www.linkedin.com/pulse/yesterdays-worth-todays-quick-win-bobcats-coding-fofif/?trackingId=20260518_STRT">
   <div style="display:flex;align-items:center;gap:100px;width:100%;">
     <div style="flex:1;">
       <div id="tw-quote" class="h3" style="font-size:80px;font-weight:600;max-width:1100px;line-height:1.05;color:#334258;"></div>
@@ -440,7 +454,7 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 
 <!-- 6.7 Self-building documentations -->
 <div class="slide bg-dark" id="s6-7" data-id="6.7" data-section="6" data-anim="self-build" data-notes="The wiki maintains itself. We are watching it happen. Roll the video; let it loop while you talk about the bot."
-     data-qr-url="https://www.notion.so/bobcats-coding/Karpathy-s-LLM-Wiki-in-production-self-writing-RFCs-postmortems-and-runbooks-35d1c06aab6e800584cecd08ce158024">
+     data-qr-url="https://www.linkedin.com/pulse/karpathys-llm-wiki-production-self-writing-rfcs-postmortems-m7qpf/?trackingId=20260518_STRT">
   <div style="display:flex;align-items:center;gap:80px;width:100%;max-width:1780px;">
     <div style="flex:0 0 720px;display:flex;flex-direction:column;gap:48px;">
       <div class="h2">Self-Building<br><span class="green">Documentation.</span></div>
@@ -462,7 +476,7 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 
 <!-- 7.3 Q&A hold frame -->
 <div class="slide bg-dark" id="s7-3" data-id="7.3" data-section="7" data-anim="qr-fade" data-notes="Hold here for Q&A. Stay on this slide for 20 minutes."
-     data-qr-url="https://www.notion.so/bobcats-coding/Welcome-To-AI-Field-Notes-2f11c06aab6e8145a180d3e7d80aee84">
+     data-qr-url="https://www.linkedin.com/newsletters/ai-field-notes-7444459771174313987/?trackingId=20260518_STRT">
   <div id="hold-frame" style="display:flex;flex-direction:column;align-items:center;gap:56px;">
     <img src="assets/bobcats-logo.png" alt="Bobcats Coding" style="height:160px;object-fit:contain;filter:brightness(1.1);">
     <div class="h3 green center" style="letter-spacing:.15em;">AI Field Notes</div>
@@ -475,7 +489,6 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 <div class="slide bg-dark" id="s7-4" data-id="7.4" data-section="7" data-anim="qr-fade" data-notes="Final slide — share the deck."
      data-qr-url="https://kondfox.github.io/presentations/20260518_STRT/">
   <div class="hold-frame-link" style="display:flex;flex-direction:column;align-items:center;gap:56px;">
-    <img src="assets/bobcats-logo.png" alt="Bobcats Coding" style="height:160px;object-fit:contain;filter:brightness(1.1);">
     <div class="h3 green center" style="letter-spacing:.15em;">Link to this presentation</div>
     <div class="qr-wrap"><canvas class="qr-canvas" data-qr-id="qr-7-4" style="width:280px;height:280px;"></canvas><div class="qr-label">Scan to open</div></div>
   </div>
@@ -1168,11 +1181,12 @@ function startObsidianGraph(svg) {
     { kind: 'glossary',     color: '#FCE3EB', size: 6 },
   ];
   const LABELS = [
-    'sampling', 'rooam', 'auth', 'sms-follow-up', 'jwt-issuer',
-    'amex-flap', 'session-tokens', 'state-lock', 'feature-flags', 'follow-up-emoji',
-    'guest-sampling', 'pubsub-deadletter', 'kysely-migrations', 'rate-limit',
-    'sample-ledger', 'event-broker', 'composition-root', 'tRPC-router',
-    'figma-mcp', 'playwright-e2e', 'koa-context', 'bars-repository',
+    'auth', 'jwt-issuer', 'session-tokens', 'rate-limit',
+    'checkout-flow', 'order-pipeline', 'order-ledger', 'vendor-api',
+    'webhook-retry', 'gateway-flap', 'state-lock', 'pubsub-deadletter',
+    'kysely-migrations', 'feature-flags', 'event-broker', 'composition-root',
+    'tRPC-router', 'figma-mcp', 'playwright-e2e', 'koa-context',
+    'sms-pipeline', 'data-repository',
   ];
   const edgeLayer = document.createElementNS(NS, 'g');
   edgeLayer.setAttribute('stroke', '#E1E281');
