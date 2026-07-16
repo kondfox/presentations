@@ -120,7 +120,7 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 .title-logo{position:absolute;top:0;left:0;height:60px;filter:brightness(0) invert(1);opacity:.5;z-index:3;will-change:transform;}
 /* obsidian graph background (slide 6.1) */
 .obsidian-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:.55;}
-/* LLM Wiki fields (slides 7.4, 7.5, 7.7) */
+/* LLM Wiki fields (slides 8.4, 8.5, 8.7) */
 .wiki-folder-tag{display:inline-block;font-family:'Bai Jamjuree',sans-serif;font-size:24px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#E1E281;border:1.5px solid rgba(225,226,129,.45);border-radius:4px;padding:8px 18px;}
 .wiki-fields{display:flex;flex-direction:column;gap:18px;border-left:3px solid #E1E281;padding-left:36px;}
 .wiki-field{display:flex;align-items:baseline;gap:24px;font-family:'Bai Jamjuree',sans-serif;}
@@ -211,8 +211,36 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
 </svg>
 </div>
 
-<!-- 2.1 Agentic Engineering title -->
-<div class="slide bg-dark" id="s2-1" data-id="2.1" data-section="2" data-section-title="Agentic Engineering" data-anim="grid-materialize" data-notes="">
+<!-- 2.1 Vibe Coding: title + video + logos -->
+<div class="slide bg-dark" id="s2-1" data-id="2.1" data-section="2" data-section-title="Vibe Coding" data-anim="vibe-title" data-notes="Andrej Karpathy coined the term. These tools are remarkable for MVPs.">
+  <div class="h1 green center" id="vibe-title-text" style="margin-bottom:56px;font-size:120px;">VIBE CODING</div>
+  <video class="slide-video" src="assets/vibe-coding.mp4" loop muted playsinline id="vibe-video"></video>
+  <div class="logos-row" style="margin-top:48px;">
+    <div class="logo-box"><img src="assets/logo-lovable.png" alt="Lovable"></div>
+    <div class="logo-box"><img src="assets/logo-base44.svg" alt="Base44"></div>
+    <div class="logo-box"><img src="assets/logo-bolt.png" alt="Bolt.new"></div>
+    <div class="logo-box"><img src="assets/logo-bubble.svg" alt="Bubble.io"></div>
+  </div>
+</div>
+
+<!-- 2.2 The pitch -->
+<div class="slide bg-dark" id="s2-2" data-id="2.2" data-section="2" data-anim="fade-up" data-notes="">
+  <div class="body center" style="max-width:1400px;font-style:italic;">Intuitive, prompt-based AI development.<br>Great for MVPs and quick iteration.</div>
+</div>
+
+<!-- 2.3 Where it breaks -->
+<div class="slide bg-dark" id="s2-3" data-id="2.3" data-section="2" data-anim="vibe-bullets" data-notes="This is where vibe coding hits a wall.">
+  <img class="ncr-bg" src="assets/giphy-chaos.gif" alt="">
+  <div style="position:relative;z-index:2;background:rgba(51,66,88,.88);padding:60px 80px;border-radius:8px;max-width:900px;align-self:flex-end;margin-right:80px;">
+    <div class="h3" style="margin-bottom:36px;color:#E1E281;">Where It Breaks</div>
+    <div class="body-sm" id="vibe-b1" style="margin-bottom:20px;padding-left:24px;border-left:3px solid #E1E281;">no architectural memory</div>
+    <div class="body-sm" id="vibe-b2" style="margin-bottom:20px;padding-left:24px;border-left:3px solid #E1E281;">fragile at scale</div>
+    <div class="body-sm" id="vibe-b3" style="padding-left:24px;border-left:3px solid #E1E281;">hard to harden for production</div>
+  </div>
+</div>
+
+<!-- 3.1 Agentic Engineering title -->
+<div class="slide bg-dark" id="s3-1" data-id="3.1" data-section="3" data-section-title="Agentic Engineering" data-anim="grid-materialize" data-notes="">
   <svg id="grid-svg" width="1920" height="1080" viewBox="0 0 1920 1080" style="position:absolute;inset:0;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
   <!-- Horizontal lines -->
   <line class="grid-line" x1="0" y1="270" x2="1920" y2="270"/>
@@ -239,13 +267,13 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 2.2 The pitch -->
-<div class="slide bg-dark" id="s2-2" data-id="2.2" data-section="2" data-anim="fade-up" data-notes="">
+<!-- 3.2 The pitch -->
+<div class="slide bg-dark" id="s3-2" data-id="3.2" data-section="3" data-anim="fade-up" data-notes="">
   <div class="body center" style="max-width:1400px;font-style:italic;">Structured, autonomous workflows.<br>Plan, code, test, with minimal oversight.<br>Built for reliability and maintenance.</div>
 </div>
 
-<!-- 3.1 How I work nowadays — interactive workflow map (zoom / scroll / pan) -->
-<div class="slide bg-dark wf-slide" id="s3-1" data-id="3.1" data-section="3" data-section-title="How I Work" data-anim="workflow-map" data-notes="My end-to-end workflow. Zoom with ⌘/Ctrl-scroll (or the ± buttons), scroll to pan, drag to move. Walk it top-down: a task becomes a specification prompt, /grilling builds shared understanding, /to-spec writes the spec, /to-tickets slices it into a dependency tree, the agentic loop executes in isolated sandboxes with TDD + critic + checks + merge, /review runs a different model, then human review by senior devs — anything unresolved loops back to /to-spec — until DONE.">
+<!-- 4.1 How I work nowadays — interactive workflow map (zoom / scroll / pan) -->
+<div class="slide bg-dark wf-slide" id="s4-1" data-id="4.1" data-section="4" data-section-title="How I Work" data-anim="workflow-map" data-notes="My end-to-end workflow. Zoom with ⌘/Ctrl-scroll (or the ± buttons), scroll to pan, drag to move. Walk it top-down: a task becomes a specification prompt, /grilling builds shared understanding, /to-spec writes the spec, /to-tickets slices it into a dependency tree, the agentic loop executes in isolated sandboxes with TDD + critic + checks + merge, /review runs a different model, then human review by senior devs — anything unresolved loops back to /to-spec — until DONE.">
   <div class="wf-heading">How I work nowadays</div>
   <div class="wf-stage">
     <div class="wf-canvas">
@@ -300,8 +328,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   <div class="wf-hint">Scroll to pan · ⌘/Ctrl-scroll or ± to zoom · drag to move</div>
 </div>
 
-<!-- 4.1 48 → 8 countdown -->
-<div class="slide bg-dark" id="s4-1" data-id="4.1" data-section="4" data-section-title="Frontend Experiment" data-anim="countdown" data-notes="48-hour estimate. Built in 8. Let that land.">
+<!-- 5.1 48 → 8 countdown -->
+<div class="slide bg-dark" id="s5-1" data-id="5.1" data-section="5" data-section-title="Frontend Experiment" data-anim="countdown" data-notes="48-hour estimate. Built in 8. Let that land.">
   <div style="display:flex;align-items:center;gap:48px;margin-bottom:48px;">
     <span id="count-num" style="font-size:280px;font-weight:600;line-height:1;color:#E1E281;letter-spacing:-.02em;">48</span>
     <div style="display:flex;flex-direction:column;gap:0;">
@@ -312,8 +340,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   <div class="sub center">Frontend module. Estimated at 48 hours. Built in 8.</div>
 </div>
 
-<!-- 4.2 Screenshots carousel -->
-<div class="slide bg-dark" id="s4-2" data-id="4.2" data-section="4" data-anim="carousel" data-carousel="true" data-notes="Walk through each screenshot slowly. Point out the Figma designs, then the Claude Code session, Playwright run, final output.">
+<!-- 5.2 Screenshots carousel -->
+<div class="slide bg-dark" id="s5-2" data-id="5.2" data-section="5" data-anim="carousel" data-carousel="true" data-notes="Walk through each screenshot slowly. Point out the Figma designs, then the Claude Code session, Playwright run, final output.">
   <div class="carousel">
     <div class="c-frame c-active" data-ci="0"><img class="screenshot-img" src="assets/section-4/1.png" alt=""></div>
     <div class="c-frame" data-ci="1"><img class="screenshot-img" src="assets/section-4/2.png" alt=""></div>
@@ -330,8 +358,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   <div class="cz-hint">⌘/Ctrl-scroll or ± to zoom · drag to pan · ←/→ to switch</div>
 </div>
 
-<!-- 4.3 Stack logos -->
-<div class="slide bg-dark" id="s4-3" data-id="4.3" data-section="4" data-anim="stack-logos" data-notes="The five tools that made this possible.">
+<!-- 5.3 Stack logos -->
+<div class="slide bg-dark" id="s5-3" data-id="5.3" data-section="5" data-anim="stack-logos" data-notes="The five tools that made this possible.">
   <div class="logos-row" id="stack-logos">
     <span class="logo-wm hi">Claude Code</span>
     <span class="logo-wm hi">Figma MCP</span>
@@ -341,8 +369,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 4.4 Takeaway + QR -->
-<div class="slide bg-dark" id="s4-4" data-id="4.4" data-section="4" data-anim="fade-up" data-notes=""
+<!-- 5.4 Takeaway + QR -->
+<div class="slide bg-dark" id="s5-4" data-id="5.4" data-section="5" data-anim="fade-up" data-notes=""
      data-qr-url="https://www.linkedin.com/pulse/ai-field-notes-001-frontend-development-finally-getting-pk5sf/?trackingId=20260716_Franziska_Mastermind">
   <div style="display:flex;align-items:center;gap:120px;width:100%;">
     <div style="flex:1;">
@@ -352,19 +380,19 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 5.1 Title -->
-<div class="slide bg-dark" id="s5-1" data-id="5.1" data-section="5" data-section-title="Version Checker" data-anim="fade-up" data-notes="">
+<!-- 6.1 Title -->
+<div class="slide bg-dark" id="s6-1" data-id="6.1" data-section="6" data-section-title="Version Checker" data-anim="fade-up" data-notes="">
   <div class="h2 center" style="max-width:1400px;">Small Guardrails,<br><span class="green">Compounding Returns</span></div>
 </div>
 
-<!-- 5.2 Version checker hook -->
-<div class="slide bg-dark" id="s5-2" data-id="5.2" data-section="5" data-anim="fade-up" data-notes="The version checker hook intercepts the bad version. Walk through what they're seeing.">
+<!-- 6.2 Version checker hook -->
+<div class="slide bg-dark" id="s6-2" data-id="6.2" data-section="6" data-anim="fade-up" data-notes="The version checker hook intercepts the bad version. Walk through what they're seeing.">
   <div class="h3 green center" style="margin-bottom:48px;">The Version Checker Hook</div>
   <img src="assets/version-checker.gif" alt="Version checker hook" style="max-width:1500px;max-height:720px;object-fit:contain;border-radius:6px;">
 </div>
 
-<!-- 5.3 Architecture diagram + article QR -->
-<div class="slide bg-dark" id="s5-3" data-id="5.3" data-section="5" data-anim="fade-up" data-notes="Scan for the full write-up."
+<!-- 6.3 Architecture diagram + article QR -->
+<div class="slide bg-dark" id="s6-3" data-id="6.3" data-section="6" data-anim="fade-up" data-notes="Scan for the full write-up."
      data-qr-url="https://www.calebleak.com/posts/dog-game/">
   <div style="display:flex;align-items:center;gap:80px;width:100%;">
     <div style="flex:1;min-width:0;display:flex;justify-content:center;">
@@ -374,20 +402,20 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 5.4 Takeaway + QR -->
-<div class="slide bg-dark" id="s5-4" data-id="5.4" data-section="5" data-anim="fade-up" data-notes=""
+<!-- 6.4 Takeaway + QR -->
+<div class="slide bg-dark" id="s6-4" data-id="6.4" data-section="6" data-anim="fade-up" data-notes=""
      data-qr-url="https://www.linkedin.com/pulse/ai-field-notes-002-weekly-memos-engineering-leaders-bobcats-coding-s95af/?trackingId=20260716_Franziska_Mastermind">
   <div class="body center" style="max-width:1400px;font-style:italic;margin-bottom:80px;">Each small guardrail removes one<br>human-in-the-loop step. They compound.</div>
   <div class="qr-wrap"><canvas class="qr-canvas" data-qr-id="qr-4-3"></canvas><div class="qr-label">AI Field Notes</div></div>
 </div>
 
-<!-- 6.1 Story -->
-<div class="slide bg-pink" id="s6-1" data-id="6.1" data-section="6" data-section-title="Quick Win" data-anim="fade-up" data-notes="Student worker doing repetitive admin tasks. An afternoon of work.">
+<!-- 7.1 Story -->
+<div class="slide bg-pink" id="s7-1" data-id="7.1" data-section="7" data-section-title="Quick Win" data-anim="fade-up" data-notes="Student worker doing repetitive admin tasks. An afternoon of work.">
   <div class="body center" style="max-width:1400px;font-style:italic;">We automated our student worker's process<br>into Claude slash commands.<br><span style="opacity:.6;">In an afternoon.</span></div>
 </div>
 
-<!-- 6.2 The quote -->
-<div class="slide bg-pink" id="s6-2" data-id="6.2" data-section="6" data-anim="typewriter" data-notes="This is the most quotable line. Let it breathe."
+<!-- 7.2 The quote -->
+<div class="slide bg-pink" id="s7-2" data-id="7.2" data-section="7" data-anim="typewriter" data-notes="This is the most quotable line. Let it breathe."
      data-qr-url="https://www.linkedin.com/pulse/yesterdays-worth-todays-quick-win-bobcats-coding-fofif/?trackingId=20260716_Franziska_Mastermind">
   <div style="display:flex;align-items:center;gap:100px;width:100%;">
     <div style="flex:1;">
@@ -398,8 +426,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 7.1 LLM Wiki title with Obsidian graph background -->
-<div class="slide bg-dark" id="s7-1" data-id="7.1" data-section="7" data-section-title="LLM Wiki" data-anim="obsidian-graph" data-notes="Karpathy's LLM Wiki pattern. The model maintains a compounding, persistent knowledge base alongside the codebase.">
+<!-- 8.1 LLM Wiki title with Obsidian graph background -->
+<div class="slide bg-dark" id="s8-1" data-id="8.1" data-section="8" data-section-title="LLM Wiki" data-anim="obsidian-graph" data-notes="Karpathy's LLM Wiki pattern. The model maintains a compounding, persistent knowledge base alongside the codebase.">
   <svg class="obsidian-svg" viewBox="0 0 1920 1080" preserveAspectRatio="none"></svg>
   <div style="position:relative;z-index:3;text-align:center;">
     <div class="h1" style="font-size:128px;">LLM Wiki</div>
@@ -408,8 +436,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 7.2 Detailed documentations about everything (sequence diagram) -->
-<div class="slide bg-dark" id="s7-2" data-id="7.2" data-section="7" data-anim="sequence-reveal" data-notes="One request through every layer. From the wiki's architecture page — the kind of context a new session can absorb in seconds.">
+<!-- 8.2 Detailed documentations about everything (sequence diagram) -->
+<div class="slide bg-dark" id="s8-2" data-id="8.2" data-section="8" data-anim="sequence-reveal" data-notes="One request through every layer. From the wiki's architecture page — the kind of context a new session can absorb in seconds.">
   <div class="h3 green" style="position:absolute;top:60px;left:120px;font-size:48px;">Detailed documentations about everything</div>
   <svg id="seq-svg" viewBox="0 0 1720 880" style="width:1720px;height:auto;max-height:880px;margin-top:80px;font-family:'Bai Jamjuree',sans-serif;" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -463,8 +491,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </svg>
 </div>
 
-<!-- 7.3 Postmortems -->
-<div class="slide bg-dark" id="s7-3" data-id="7.3" data-section="7" data-anim="wiki-fields" data-notes="Postmortems used to happen at the meeting where someone asked 'wait, why did that happen?'. Now they write themselves whenever a non-trivial bug is fixed.">
+<!-- 8.3 Postmortems -->
+<div class="slide bg-dark" id="s8-3" data-id="8.3" data-section="8" data-anim="wiki-fields" data-notes="Postmortems used to happen at the meeting where someone asked 'wait, why did that happen?'. Now they write themselves whenever a non-trivial bug is fixed.">
   <div style="display:flex;align-items:center;gap:96px;width:100%;max-width:1700px;">
     <div style="flex:1;">
       <div class="wiki-folder-tag">bugs/</div>
@@ -482,8 +510,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 7.4 Hacks & Tech debts -->
-<div class="slide bg-dark" id="s7-4" data-id="7.4" data-section="7" data-anim="wiki-fields" data-notes="Tech debt with the *why*, not just a list. Every entry comes from a real PR; the bot extracts the *why* from the PR description.">
+<!-- 8.4 Hacks & Tech debts -->
+<div class="slide bg-dark" id="s8-4" data-id="8.4" data-section="8" data-anim="wiki-fields" data-notes="Tech debt with the *why*, not just a list. Every entry comes from a real PR; the bot extracts the *why* from the PR description.">
   <div style="display:flex;align-items:center;gap:96px;width:100%;max-width:1700px;">
     <div style="flex:1;">
       <div class="wiki-folder-tag">hacks/ · tech-debt/</div>
@@ -500,8 +528,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 7.5 Runbooks with terminal animation -->
-<div class="slide bg-dark" id="s7-5" data-id="7.5" data-section="7" data-anim="runbook" data-notes="Runbooks for when the usual person isn't around. Step by step, with the actual commands. The next time we hit a state lock and the usual person was out, the fix was two commands from the wiki.">
+<!-- 8.5 Runbooks with terminal animation -->
+<div class="slide bg-dark" id="s8-5" data-id="8.5" data-section="8" data-anim="runbook" data-notes="Runbooks for when the usual person isn't around. Step by step, with the actual commands. The next time we hit a state lock and the usual person was out, the fix was two commands from the wiki.">
   <div style="display:flex;align-items:flex-start;gap:80px;width:100%;max-width:1740px;">
     <div style="flex:0 0 540px;">
       <div class="wiki-folder-tag">runbooks/</div>
@@ -525,8 +553,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 7.6 Decisions -->
-<div class="slide bg-dark" id="s7-6" data-id="7.6" data-section="7" data-anim="wiki-fields" data-notes="Decisions get written up automatically. Every meaningful PR becomes a small RFC by default.">
+<!-- 8.6 Decisions -->
+<div class="slide bg-dark" id="s8-6" data-id="8.6" data-section="8" data-anim="wiki-fields" data-notes="Decisions get written up automatically. Every meaningful PR becomes a small RFC by default.">
   <div style="display:flex;align-items:center;gap:96px;width:100%;max-width:1700px;">
     <div style="flex:1;">
       <div class="wiki-folder-tag">decisions/</div>
@@ -544,8 +572,8 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 7.7 Self-building documentations -->
-<div class="slide bg-dark" id="s7-7" data-id="7.7" data-section="7" data-anim="self-build" data-notes="The wiki maintains itself. We are watching it happen. Roll the video; let it loop while you talk about the bot."
+<!-- 8.7 Self-building documentations -->
+<div class="slide bg-dark" id="s8-7" data-id="8.7" data-section="8" data-anim="self-build" data-notes="The wiki maintains itself. We are watching it happen. Roll the video; let it loop while you talk about the bot."
      data-qr-url="https://www.linkedin.com/pulse/karpathys-llm-wiki-production-self-writing-rfcs-postmortems-m7qpf/?trackingId=20260716_Franziska_Mastermind">
   <div style="display:flex;align-items:center;gap:80px;width:100%;max-width:1780px;">
     <div style="flex:0 0 720px;display:flex;flex-direction:column;gap:48px;">
@@ -556,29 +584,29 @@ html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-famil
   </div>
 </div>
 
-<!-- 8.1 -->
-<div class="slide bg-dark" id="s8-1" data-id="8.1" data-section="8" data-section-title="Conclusions" data-anim="kinetic" data-notes="">
+<!-- 9.1 -->
+<div class="slide bg-dark" id="s9-1" data-id="9.1" data-section="9" data-section-title="Conclusions" data-anim="kinetic" data-notes="">
   <div class="h2 center kinetic-container" style="max-width:1600px;" id="kt-7-1">AI changes how software is built.<br>Not whether developers exist.</div>
 </div>
 
-<!-- 8.2 -->
-<div class="slide bg-dark" id="s8-2" data-id="8.2" data-section="8" data-anim="kinetic" data-notes="">
+<!-- 9.2 -->
+<div class="slide bg-dark" id="s9-2" data-id="9.2" data-section="9" data-anim="kinetic" data-notes="">
   <div class="h2 center kinetic-container" style="max-width:1600px;" id="kt-7-2">Specify <span class="green">→</span> Build <span class="green">→</span> Analyze.<br><br><span style="display:inline-block;margin-top:48px;">Document your experiments.</span></div>
 </div>
 
-<!-- 8.3 Q&A hold frame -->
-<div class="slide bg-dark" id="s8-3" data-id="8.3" data-section="8" data-anim="qr-fade" data-notes="Hold here for Q&A. Stay on this slide for 20 minutes."
+<!-- 9.3 Q&A hold frame -->
+<div class="slide bg-dark" id="s9-3" data-id="9.3" data-section="9" data-anim="qr-fade" data-notes="Hold here for Q&A. Stay on this slide for 20 minutes."
      data-qr-url="https://www.linkedin.com/newsletters/ai-field-notes-7444459771174313987/?trackingId=20260716_Franziska_Mastermind">
   <div id="hold-frame" style="display:flex;flex-direction:column;align-items:center;gap:56px;">
-    <img src="assets/attrecto-logo.png" alt="Attrecto" style="height:90px;object-fit:contain;filter:brightness(0) invert(1);">
+    <img src="assets/attrecto-white-h.png" alt="Attrecto" style="height:100px;object-fit:contain;">
     <div class="h3 green center" style="letter-spacing:.15em;">AI Field Notes</div>
     <div class="qr-wrap"><canvas class="qr-canvas" data-qr-id="qr-7-3" style="width:280px;height:280px;"></canvas><div class="qr-label">Scan to subscribe</div></div>
     <div class="body-sm dim center" style="font-size:34px;">Questions? Let's talk.</div>
   </div>
 </div>
 
-<!-- 8.4 Link to this presentation -->
-<div class="slide bg-dark" id="s8-4" data-id="8.4" data-section="8" data-anim="qr-fade" data-notes="Final slide — share the deck."
+<!-- 9.4 Link to this presentation -->
+<div class="slide bg-dark" id="s9-4" data-id="9.4" data-section="9" data-anim="qr-fade" data-notes="Final slide — share the deck."
      data-qr-url="https://kondfox.github.io/presentations/20260716_Franziska_Mastermind/">
   <div class="hold-frame-link" style="display:flex;flex-direction:column;align-items:center;gap:56px;">
     <div class="h3 green center" style="letter-spacing:.15em;">Link to this presentation</div>
@@ -772,9 +800,13 @@ function goTo(idx, skipAnim) {
   const crossSection = from.dataset.section !== to.dataset.section;
   const dur = crossSection ? 0.4 : 0.22;
 
-  // Stop / restart self-building video when entering / leaving slide 7.7.
+  // Stop / restart self-building video when entering / leaving slide 8.7.
   const sbVid = document.getElementById('self-build-video');
-  if (from.dataset.id === '7.7' && sbVid) sbVid.pause();
+  if (from.dataset.id === '8.7' && sbVid) sbVid.pause();
+
+  // Stop vibe video if leaving slide 2.1
+  const vibeVid = document.getElementById('vibe-video');
+  if (from.dataset.id === '2.1' && vibeVid) vibeVid.pause();
 
   gsap.to(from, { opacity: 0, duration: dur, ease: 'power2.inOut', onComplete: () => from.classList.remove('visible') });
   // Stage the new slide invisible, run its child animations while still hidden, then fade in.
@@ -783,7 +815,9 @@ function goTo(idx, skipAnim) {
   to.classList.add('visible');
   if (!skipAnim) runAnim(to, idx);
   gsap.to(to, { opacity: 1, duration: dur, ease: 'power2.inOut', onComplete: () => {
-    if (to.dataset.id === '7.7' && sbVid) { sbVid.currentTime = 0; sbVid.play().catch(()=>{}); }
+    if (to.dataset.id === '8.7' && sbVid) { sbVid.currentTime = 0; sbVid.play().catch(()=>{}); }
+    if (to.dataset.id === '2.1' && vibeVid) { vibeVid.currentTime = 0; vibeVid.play().catch(()=>{}); }
+    if (to.dataset.id !== '2.1' && vibeVid) vibeVid.pause();
   }});
 
   current = idx;
@@ -1120,6 +1154,18 @@ function initQRCodes() {
 
 // ── Animations ───────────────────────────────────────────────────────────────
 const ANIMS = {
+  'vibe-title': (el) => {
+    const title = el.querySelector('#vibe-title-text');
+    if (title) glitchText(title, 'VIBE CODING');
+    gsap.from(el.querySelector('.slide-video') || el.querySelector('video'), { opacity: 0, y: 30, duration: 0.5, delay: 0.3 });
+    gsap.from(el.querySelectorAll('.logo-wm, .logo-box'), { opacity: 0, y: 20, stagger: 0.08, duration: 0.4, delay: 0.6 });
+  },
+  'vibe-bullets': (el) => {
+    ['#vibe-b1','#vibe-b2','#vibe-b3'].forEach((id, i) => {
+      const node = el.querySelector(id);
+      if (node) gsap.from(node, { opacity: 0, x: -20, duration: 0.35, delay: i * 0.12 });
+    });
+  },
   'title-0-1': (el) => {
     const typedEl = el.querySelector('#tl-typed');
     const caretEl = el.querySelector('#tl-caret');
@@ -1560,6 +1606,25 @@ function runRunbookSequence(slide) {
       if (caret) caret.style.display = 'none';
     });
   });
+}
+
+// Scrambles a string into place, character by character — used for the VIBE CODING title.
+function glitchText(el, original) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#@!$%';
+  let frame = 0;
+  const nonSpace = original.replace(/ /g, '').length;
+  const totalFrames = nonSpace * 3;
+  const iv = setInterval(() => {
+    let charsSeen = 0;
+    el.textContent = original.split('').map(c => {
+      if (c === ' ') return ' ';
+      const done = frame > charsSeen * 3;
+      charsSeen++;
+      return done ? c : chars[Math.floor(Math.random() * chars.length)];
+    }).join('');
+    frame++;
+    if (frame >= totalFrames) { el.textContent = original; clearInterval(iv); }
+  }, 40);
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
