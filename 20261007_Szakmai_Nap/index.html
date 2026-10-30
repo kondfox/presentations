@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Digitalizáció előmozdítása AI eszközökkel — Attrecto</title>
+<link rel="preload" as="image" href="assets/slides/slide-01.jpg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100vw;height:100vh;background:#0d0d0d;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#eaeaea;}
+#stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
+#frame{position:relative;width:min(100vw,calc(100vh*16/9));aspect-ratio:16/9;background:#000;box-shadow:0 0 60px rgba(0,0,0,.6);}
+#frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;}
+#progress{position:absolute;bottom:0;left:0;height:4px;background:#13A3E0;width:0;z-index:20;transition:width .25s ease;}
+#counter{position:fixed;bottom:14px;right:22px;font-size:15px;font-weight:600;letter-spacing:.06em;color:rgba(255,255,255,.55);text-shadow:0 1px 4px rgba(0,0,0,.6);z-index:20;font-variant-numeric:tabular-nums;transition:opacity .3s;}
+#hint{position:fixed;bottom:14px;left:22px;font-size:13px;color:rgba(255,255,255,.45);text-shadow:0 1px 4px rgba(0,0,0,.6);z-index:20;transition:opacity .3s;}
+#hint a{color:inherit;}
+body.idle #counter,body.idle #hint{opacity:0;}
+body.idle{cursor:none;}
+#overview{position:fixed;inset:0;background:rgba(0,0,0,.96);display:none;overflow-y:auto;z-index:1000;padding:32px 40px;}
+#overview.open{display:block;}
+#ov-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:16px;flex-wrap:wrap;}
+#ov-bar h1{font-size:18px;font-weight:600;}
+#ov-bar a{color:#0d0d0d;background:#13A3E0;font-weight:600;font-size:14px;text-decoration:none;padding:9px 16px;border-radius:6px;}
+#ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;}
+.ov-thumb{cursor:pointer;border-radius:4px;overflow:hidden;outline:2px solid transparent;transition:outline-color .15s,transform .15s;background:#111;}
+.ov-thumb:hover{transform:translateY(-2px);}
+.ov-thumb.active{outline-color:#13A3E0;}
+.ov-thumb img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;}
+.ov-label{font-size:13px;color:rgba(255,255,255,.6);padding:6px 8px;}
+#blackout{position:fixed;inset:0;background:#000;z-index:2000;display:none;}
+#blackout.on{display:block;}
+/* presenter */
+#presenter{display:none;height:100vh;padding:24px;gap:20px;flex-direction:column;}
+body.presenter #stage,body.presenter #counter,body.presenter #hint{display:none;}
+body.presenter{overflow:auto;cursor:auto;}
+body.presenter #presenter{display:flex;}
+.p-row{display:flex;gap:20px;flex:1;min-height:0;}
+.p-col{display:flex;flex-direction:column;gap:12px;min-height:0;}
+.p-label{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);}
+.p-col img{width:100%;aspect-ratio:16/9;object-fit:contain;background:#000;border-radius:4px;}
+#p-notes{flex:1;overflow-y:auto;background:#151515;border-radius:6px;padding:18px 20px;font-size:19px;line-height:1.55;white-space:pre-wrap;}
+#p-meta{display:flex;justify-content:space-between;font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;color:#13A3E0;}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="frame">
+    <img id="slide" src="assets/slides/slide-01.jpg" alt="">
+    <div id="progress"></div>
+  </div>
+</div>
+<div id="counter"></div>
+<div id="hint">← → navigate · Esc overview · F fullscreen · P presenter</div>
+<div id="overview">
+  <div id="ov-bar">
+    <h1>Digitalizáció előmozdítása AI eszközökkel</h1>
+    <a href="assets/Digitalizacio_AI_EON_Attrecto.pdf" download>⤓ Download PDF</a>
+  </div>
+  <div id="ov-grid"></div>
+</div>
+<div id="blackout"></div>
+<div id="presenter">
+  <div id="p-meta"><span id="p-count"></span><span id="p-timer">00:00</span></div>
+  <div class="p-row">
+    <div class="p-col" style="flex:3">
+      <div class="p-label">Current</div>
+      <img id="p-current" alt="">
+      <div class="p-label">Notes</div>
+      <div id="p-notes"></div>
+    </div>
+    <div class="p-col" style="flex:2">
+      <div class="p-label">Next</div>
+      <img id="p-next" alt="">
+    </div>
+  </div>
+</div>
+<script>
+// Speaker notes, extracted from the PPTX export (one entry per slide).
+const NOTES = ["1 · DIGITALIZÁCIÓ ELŐMOZDÍTÁSA AI ESZKÖZÖKKEL — 0:30\n\nKöszönöm a lehetőséget. Fél órát kaptam, ebből huszonhat percet beszélek, négyet hagyok a kérdéseitekre. A cím kicsit hivatalos, a tartalom nem lesz az: két sztorit hozok a saját praxisunkból, egy állítást, amivel lehet vitatkozni, és egy lépéssort, amit holnap el lehet kezdeni.\n\nMielőtt bármit mondanék, szeretném tudni, kikhez beszélek.", "2 · KEZDJÜK VELETEK — 1:30\n\nNégy kérdés, kézfeltevéssel. Nincs rossz válasz.\n\nKi jött IT-területről – fejlesztő, üzemeltető, architekt? (Nézz körül, mondd ki hangosan az arányt: „nagyjából a harmad / a fele\".)\n\nKi használ napi szinten AI-t a munkájához? (Ez általában a többség. Reagálj: „jó, akkor nem nulláról indulunk\".)\n\nKi automatizált már egy teljes munkafolyamatot AI-val – nem egy feladatot, hanem egy folyamatot? (Itt esnek a kezek. Ez a lényeg: „Ez a különbség, amiről ma beszélek.\")\n\nÉs ki az, aki kételkedik az AI által végzett munka minőségében vagy megbízhatóságában? (Köszönd meg az őszinteséget: „Jó, hogy itt vagytok, nektek is hoztam valamit. Erre vissza fogok térni.\")\n\nJegyezd meg a két utolsó arányt, a 9. és a 12. diánál visszautalsz rá.", "3 · KI BESZÉL — 1:00\n\nRöviden magamról, mert a hitelesség miatt számít. Az Attrecto CTO-ja vagyok, előtte a Bobcats Coding CTO-ja voltam. Előtte évekig full-stack fejlesztő, öt évig oktató, nyolc évig product manager – vagyis láttam a fejlesztést a kódtól a terméken át az üzletig.\n\nAz Attrectónál többnyire nagyvállalati ügyfeleknek fejlesztünk egyedi megoldásokat – nektek is, és más hozzátok hasonló szervezeteknek is. A Bobcats Codinggal amerikai startupokat és KKV-kat szolgáltunk ki, ott a tempó és a költségérzékenység egészen más. Ez a két világ együtt adja azt a nézőpontot, amiből ma beszélek.", "4 · ASSZISZTENSBŐL ÁGENS — 1:00\n\nEgy mondatban a tézis, aztán jöjjenek a sztorik.\n\nFél éve még az volt a kérdés: hogyan kódoljunk gyorsabban AI-val. Hogyan írjon helyettem egy függvényt, egy e-mailt, egy összefoglalót. Ez az asszisztens-korszak.\n\nMa a kérdés más: hogyan vegyen részt egy önállóan döntő, célvezérelt ágens egy teljes munkafolyamatban. Nem egy lépésben segít, hanem végigmegy a folyamaton – pénzügyben, HR-ben, ügyfélszolgálaton. Ez az ágens-korszak, és ez már nem a jövő. Mindjárt mutatom, hogy néz ki a gyakorlatban.", "5 · $50 000 VAGY 6 ÓRA — 2:00\n\nKb. három hónapja megkeresett minket egy New York-i építészcég. Fejlesztési árajánlatot kértek: automatizáljuk az ajánlattételi folyamatukat AI-val.\n\nElolvastam a kiírást, és azt gondoltam: ez nem fejlesztési feladat. Ez annyira egyszerű, hogy ők maguk meg tudják csinálni, ha valaki megmutatja, hogyan.\n\nA versenytársaink nem így látták. Volt, aki minimum ötvenezer dollárra árazta. Volt, aki az egyszeri fejlesztés mellé még havi előfizetési díjat is számolt – vagyis egy örökös függőséget adott volna el nekik.\n\nMi fejlesztési ajánlat helyett egy hatórás workshopra küldtünk ajánlatot. Hogy megtanítsuk őket arra, hogyan automatizálják ezt saját maguk.", "6 · NÉGY ÓRA ALATT MEGCSINÁLTÁK — 2:00\n\nHatan ültek a teremben: mindenki, akinek köze volt az ajánlattételhez. Fejlesztő, sales-es, pénzügyes, és a CEO. Nem én csináltam meg helyettük – én irányítottam, és pontosan annyi edukációt adtam, amennyi ehhez a feladathoz kellett.\n\nNégy óra alatt automatizálták a kiírt feladatkört. Az ő szavaikkal: az eredmény minden elvárásukat felülmúlta, sebességben és minőségben is.\n\nA maradék két órában ezt csináltuk (mutass a folyamatábrára): felrajzoltuk a többi belső folyamatukat is, és végigmentünk rajtuk. Melyik az, amit a most tanultak alapján ők maguk megcsinálnak? És melyik az, ami tényleg komplex, ahol tényleg fejlesztés kell? Ez a kettéválasztás volt szerintem a workshop legértékesebb része – ezt vigyétek haza.\n\nTanulság: a feladat nagy része nem technológia volt, hanem az, hogy valaki kimondja: ez megcsinálható, és megmutatja az első lépést.", "7 · ÍGY FEJLESZTÜNK MA — 2:00\n\nHogy ne gondoljátok, hogy ezt csak másoknak ajánlom: nálunk a fejlesztés ma már bevált módon, AI-val történik.\n\nA kódot ágensek írják. A fejlesztők azt csinálják, amiben ember kell: terveznek, review-znak, és tanítják egymást. Van human-in-the-loop, de nem a billentyűzetnél, hanem a döntéseknél.\n\nFolyamatosan kísérletezünk – workflow-kkal, skillekkel, agentekkel –, és a kísérleteket megosztjuk egymással. Ami beválik, abból módszer lesz; ami nem, abból tanulság. Ettől marad naprakész a tudásunk.\n\nAz eredmény: gyorsabban gyártunk minőségibb megoldásokat, mint bármikor korábban. És ez nem a végállapot, ez a mostani állapot.", "8 · A LEMARADÓ TERÜLET LASSÍTJA A TÖBBIT — 3:00\n\nAmi most zajlik nálunk is, és minden cégnél a világon: a fejlesztésen kívüli területek hogyan gyorsulnak fel. A 10x fejlesztők mellé hogyan lesznek 10x sales-esek, pénzügyesek, HR-esek.\n\nMert a cég minden területének együtt kell fejlődnie. Gondoljátok végig velem a láncot.\n\nA fejlesztők kétszer olyan gyorsak lettek. De a sales nem tud kétszer annyi munkát behozni, mert a marketing nem gyorsult fel. Mi történik? A fejlesztők üresjáratban vannak, és előbb-utóbb el kell engedni belőlük. Ettől a cég növekedési lehetősége csökken. És jön a második hatás: a maradék fejlesztők megtanulják, hogy ha gyorsabban dolgoznak, az a munkájukba kerülhet. Tehát lelassulnak. Ez a félelem-spirál, és ez visszaveti az egész céget.\n\nKözben jön egy versenytárs, akinél minden terület egyszerre gyorsult, és jobb, gyorsabb szolgáltatást ad.\n\nÉs a legkeserűbb forgatókönyv: mire a pénzügyi folyamatokat automatizáljátok, a fejlesztőket már leépítettétek. Új munka nem jött be, a bevétel nem tartja el a felszabadult pénzügyeseket – tehát ott is létszámcsökkentés jön. Nem azért, mert az AI elvette a munkát, hanem mert a területek nem egyszerre léptek.\n\nEz az üzenet: az AI-transzformáció nem IT-projekt. Vagy együtt mozdul a cég, vagy a leglassabb terület diktálja a tempót.", "9 · A KIFOGÁSOK ELFOGYTAK — 2:00\n\nItt jön az állításom, amivel lehet vitatkozni: a céges folyamatok automatizálása ma sokkal inkább mindset-probléma, mint technológiai.\n\nMindenki szeret kifogást találni arra, hogy az ő folyamata miért nem automatizálható. Legacy rendszerek. Biztonsági elvárások. Dokumentálatlan folyamatok. Összehackelt megoldások, amiket csak egy ember ért a cégben.\n\nNem mondom, hogy ezek nem valósak. Azt mondom, hogy ma már mindegyikre létezik technológiai megoldás. Ami tavaly lehetetlennek vagy többhónapos projektnek tűnt, az ma lehet, hogy egy délutános, pár napos automatizáció.\n\n(Utalj vissza a kézfeltevésre.) Akik az elején jelezték, hogy kételkednek – jogosan. De most mutatok egy sztorit, ahol pontosan ezt a kételyt kellett nekem is legyőznöm. Magamban.", "10 · 15 PERC × 1,5 ÉV — 1:30\n\nEgy ügyfelünk vendéglátóhelyeken futtat marketing-kampányokat. Ehhez a kampányt össze kell kötni a vendéglátóhely POS-termináljával, hogy a résztvevő vendégek ingyen terméket kapjanak. Minden kampány minden helyszínéhez kell egy konfiguráció az adatbázisunkban.\n\nEgy ilyen konfiguráció tizenöt perc fejlesztői munka volt. Egy admin felület, amin a kampánymenedzserek maguk állíthatnák be, kb. egy hónapos fejlesztés lett volna. Ez túl nagy tétel volt ahhoz, hogy megrendeljék – mindig volt fontosabb.\n\nÍgy másfél évig kézzel csináltuk. Ahogy több lett belőle, jött a logikus lépés: felvettünk egy diákmunkást, Petit, betanítottuk, hogy legalább ne fejlesztői órabérrel menjen.\n\nIsmerős a minta? Ez a „working as designed\" állapot, amiben a legtöbb cég folyamatainak fele van.", "11 · KÉT ÓRA HELYETT KÉT PERC — 1:30\n\nAztán egy nap Peti épp elindult a céges bulira, amikor beesett tíz sürgős konfiguráció. Egyedül én voltam elérhető.\n\nÉs itt jön a mindset-váltás. Ültem a gép előtt, és azt éreztem: semmi kedvem két és fél órán át ezt csinálni. És jött a gyanú: rövidebb idő alatt tudom automatizálni, mint amennyi idő kézzel megcsinálni.\n\nMásfél óra volt megírni a skillt. Elneveztem Peti-skillnek. Fél óra tesztelni, egy-két kör javítás. És kész.\n\nAzóta bármennyi konfigurációt ki tudunk szolgálni, nagyjából két perc alatt, egy szabadszavas chat felületen keresztül. Az egy hónapos admin felület helyett lett egy kétórás megoldás.", "12 · A MARADÉK 30%-OT Ő AUTOMATIZÁLTA — 1:30\n\nEzzel Peti munkájának hetven százalékát automatizáltam. Peti ügyes, és meg akartuk tartani – úgyhogy megkértem: a maradék harminc százalékot automatizáld te, ennek a mintájára.\n\nSikerült neki. Diákmunkásként. Mert a technológia adott. Csak észre kell venni, hogy lehetséges, és kell egy kis iránymutatás, hogy hogyan.\n\nPeti ma is használja ezeket a skilleket, a felszabadult idejében pedig fejlesztési munkákat végez a terméken. Ami neki is hasznosabb, és örömtelibb.\n\n(Utalj vissza a kézfeltevésre.) Az elején kevesen jelezték, hogy teljes folyamatot automatizáltak. Ez a sztori arról szól, hogy a lépés a kettő között nem technológiai. Egy rossz délután és egy jó kérdés kell hozzá: „tényleg nekem kell ezt kézzel csinálnom?\"", "13 · A TRANSZFORMÁCIÓT VEZETNI KELL — 2:00\n\nJó, de hogyan kezdjünk neki egy ekkora szervezetben? Három pillért hoztam. Az első a vezetés és a kultúra.\n\nA céges AI-transzformáció egyszerre kulturális, működésbeli és technikai folyamat. Nem ismerem az E.ON kulturális célkitűzéseit – lehet, hogy az ügyfélközpontúság, lehet, hogy a kiemelkedő hatékonyság. Bármi is az, az első kérdés: hogyan segít ebben az AI? Nem fordítva.\n\nEz nem történik meg magától, organikusan. Valakinek dolgoznia kell rajta, és a felelősségvállalásnak fentről kell jönnie. Vezetői döntés és támogatás nélkül nem megy.\n\nÉs a vezetőknek nem csak a célokat kell kommunikálniuk, hanem a miérteket, a félelmeket és a kétségeket is. Miért indul el a cég ezen az úton, mit vár tőle. Ki lehet mondani őszintén: az AI olyan gyorsan fejlődik, hogy nincs ember, aki mindenre tudja a választ. Nyíltan kell beszélni az álláshelyeket érintő kérdésekről is. A bizonytalanságról szóló őszinte kommunikáció bizalmat szül; a hamis magabiztosság nem. Erre jó fórum a rendszeres vezetői egyeztetés – heti, kétheti, havi –, ha ott tényleg szabadon lehet kérdezni.\n\nA közép- és csapatvezetőknek erősítő szerepük van: hangosítsák ki a saját csapatuk eredményeit, és hangosítsák fel a más területeken született jó példákat is.", "14 · AZ AI NINCS INGYEN, A BIZTONSÁG SEM — 2:00\n\nMásodik pillér: eszközök és biztonság.\n\nAz AI nincs ingyen. Ha azt akarjuk, hogy a kollégák használják, hozzá kell férniük a modellekhez és az eszközökhöz – és a használati korlátok nem lehetnek a produktivitás gátjai. Ez praktikusan magasabb előfizetéseket jelent. Ez befektetés, nem költség; a Peti-skill megtérülése egy délután alatt megvolt.\n\nA másik oldal: kellenek céges szintű védelmek. Négy dolog.\n\nRendszerszintű védelmi mechanizmusok, eszközök, guardrailek. Proaktív tesztelés, hogy tudjuk: a rendszer még mindig biztonságos, működőképes és minőségi – nem csak reméljük. Célzott oktatás, hogy az érintettek képben legyenek a prompt injectionnel, a phishinggel, az AI-specifikus sebezhetőségekkel, és tudják, mit tegyenek ellenük. És pragmatikus növekedés: a sebesség és a funkcionalitás növekménye soha ne menjen a biztonsági elvárások rovására.\n\nEgy energetikai cégnél ezt nem kell magyaráznom. A lényeg, hogy a biztonság ne a „nem\" indoka legyen, hanem a „hogyan\" része.", "15 · AKTIVÁLD A SZERVEZETED — 2:00\n\nHarmadik pillér: lendület. Hogyan lesz ebből mozgalom, nem egy projekt?\n\nLegyenek AI-bajnokok. Területtől függetlenül, a vezetők nevezésére. Azok kapják, akik az AI-munkájukkal olyan példát mutattak, amiből a cég profitált. Nem az IT-sok kiváltsága.\n\nLegyen belső marketplace a skilleknek, agenteknek, programoknak, hogy mások könnyen megtalálják, telepítsék, használják. És a nem technikai kollégák is tudjanak oda publikálni – mert Peti példája azt mutatja, hogy fognak.\n\nHackathon, bárkinek. Nálunk ebből rengeteg céges szinten használható belső tool született, minden területről. Nem a győzelem a lényeg, hanem hogy egy nap alatt mindenki megtapasztalja: megcsinálható.\n\nÉs hol kezdjétek: azzal a folyamattal, aminek az üzleti érték × megvalósíthatóság mátrixban a legnagyobb az értéke. Nagy hatás, kis kockázat. Az ügyfélszolgálat tipikusan ilyen.", "16 · TANULD MEG → HASZNÁLD → OSZD MEG → SKÁLÁZD — 1:00\n\nEgy fontos keret a végére: a transzformáció nem egy végrehajtandó feladat, hanem egy ciklus.\n\nTanuld meg. Használd. Oszd meg. Skálázd. És vissza az elejére – mert mire skáláztad, a technológia már odébb van, és újra tanulni kell.\n\nEz a ciklus működik egyéni szinten, csapatszinten és cégszinten is. A cél nem az, hogy egyszer végigmenjetek rajta, hanem hogy a szervezet megtanulja forgatni.", "17 · HOL TARTASZ? — 1:00\n\nHogy ez kézzelfoghatóbb legyen, egy egyszerű skála, amin bárki belőheti magát – és a csapatát.\n\nNulladik szint, AI-tudatos: tud róla, de még nem használja napi szinten. Első szint, kezdő: egyszerűbb feladatokra használja, hogy gyorsabban haladjon. Második szint, optimalizáló: ötletelésre, kutatásra, döntéstámogatásra, megvalósításra is – nem csak a sebességért. Harmadik szint, bajnok: folyamatokat automatizál és tervez újra, színvonalat emel, és a saját munkáján túlmutató értéket teremt.\n\nA kézfeltevés alapján ebben a teremben a többség az első-második szinten van. A cél nem az, hogy mindenki bajnok legyen. Hanem hogy minden csapatban legyen legalább egy, és mindenki lépjen egyet.", "18 · AZ EMBER A FELELŐS, SOSEM AZ AI — 1:30\n\nZárásként: mit jelent AI-first cégnek lenni? Öt dolog.\n\nAz AI-használat a mindennapi munka része – nem külön program, nem pilot. A gördülékenyen működő folyamatok elvárás minden területen és pozícióban. A résztvevők nem csak a feladat megoldásán dolgoznak, hanem a folyamat készítésén, javításán, optimalizálásán – ez a Peti-fordulat. Növekvő sebesség és növekvő minőség, egyszerre, nem egymás rovására.\n\nÉs az ötödik, amit szeretnék, ha ebből az előadásból megmaradna: mindig az ember a felelős, sosem az AI. Az ágens dolgozik, de a döntés, a felelősség és a következmény a miénk. Ettől lesz biztonságos, és ettől marad a kezünkben.\n\nKöszönöm.", "19 · KÉRDÉSEK — 4:00\n\nNyitott kérdések. Ha csend van, indíts magad: „Az elején sokan jelezték, hogy napi szinten használnak AI-t, de kevesen, hogy folyamatot automatizáltak. Mi az első folyamat, ami eszetekbe jutott az előadás alatt?\"\n\nVárható kérdések és a válasz iránya:\n\nBiztonság, adatvédelem, szabályozott iparág: a 14. dia négy pontja; a guardrail a „hogyan\" része, nem a „nem\" indoka.\n\nMunkahelyek: őszinte válasz a 8. és a 13. dia alapján – a kockázat nem az AI, hanem az aszinkron fejlődés; a nyílt kommunikáció a vezetés feladata.\n\nMivel kezdjünk: érték × megvalósíthatóság mátrix, egy folyamat, egy csapat, egy ciklus.\n\nMennyibe kerül: az eszközhozzáférés fix, az első automatizációk megtérülése napokban mérhető; a workshop-példa.\n\nZárás: elérhetőség, és ajánlat egy rövid egyeztetésre, ha valaki konkrét folyamattal jönne."];
+const TOTAL = NOTES.length;
+const src = (i) => `assets/slides/slide-${String(i + 1).padStart(2, '0')}.jpg`;
+// First line of each note is "N · TITLE — m:ss"; use the title as a label.
+const TITLES = NOTES.map((n, i) => (n.split('\n')[0].match(/·\s*(.*?)\s*—/) || [, `Slide ${i + 1}`])[1]);
+
+let current = 0, overviewOpen = false, blackoutOn = false;
+const isPresenter = new URLSearchParams(location.search).get('mode') === 'presenter';
+const bc = (typeof BroadcastChannel !== 'undefined') ? new BroadcastChannel('slides-szakmai-nap') : null;
+
+const slideImg = document.getElementById('slide');
+const overview = document.getElementById('overview');
+const ovGrid = document.getElementById('ov-grid');
+
+// Preload everything after the first paint so navigation is instant.
+window.addEventListener('load', () => { for (let i = 1; i < TOTAL; i++) new Image().src = src(i); });
+
+function render() {
+  slideImg.src = src(current);
+  slideImg.alt = TITLES[current];
+  document.getElementById('progress').style.width = ((current + 1) / TOTAL * 100) + '%';
+  document.getElementById('counter').textContent = `${current + 1} / ${TOTAL}`;
+  ovGrid.querySelectorAll('.ov-thumb').forEach((t, i) => t.classList.toggle('active', i === current));
+  if (isPresenter) {
+    document.getElementById('p-current').src = src(current);
+    const nx = document.getElementById('p-next');
+    nx.style.visibility = current + 1 < TOTAL ? 'visible' : 'hidden';
+    if (current + 1 < TOTAL) nx.src = src(current + 1);
+    document.getElementById('p-notes').textContent = NOTES[current] || '—';
+    document.getElementById('p-count').textContent = `${current + 1} / ${TOTAL}`;
+  }
+}
+
+function goTo(i, fromRemote) {
+  current = Math.max(0, Math.min(TOTAL - 1, i));
+  history.replaceState(null, '', location.pathname + location.search + '#' + (current + 1));
+  render();
+  if (bc && !fromRemote) bc.postMessage({ type: 'nav', index: current });
+}
+const next = () => goTo(current + 1);
+const prev = () => goTo(current - 1);
+if (bc) bc.onmessage = (e) => { if (e.data.type === 'nav') goTo(e.data.index, true); };
+
+// ── Overview ─────────────────────────────────────────────────────────────────
+NOTES.forEach((_, i) => {
+  const t = document.createElement('div');
+  t.className = 'ov-thumb';
+  t.innerHTML = `<img loading="lazy" src="${src(i)}" alt=""><div class="ov-label">${i + 1} · ${TITLES[i]}</div>`;
+  t.addEventListener('click', () => { toggleOverview(false); goTo(i); });
+  ovGrid.appendChild(t);
+});
+function toggleOverview(force) {
+  overviewOpen = force !== undefined ? force : !overviewOpen;
+  overview.classList.toggle('open', overviewOpen);
+  if (overviewOpen) ovGrid.children[current].scrollIntoView({ block: 'nearest' });
+}
+
+function toggleBlackout() {
+  blackoutOn = !blackoutOn;
+  document.getElementById('blackout').classList.toggle('on', blackoutOn);
+}
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
+  else document.exitFullscreen?.();
+}
+let presWin = null;
+function openPresenter() {
+  if (presWin && !presWin.closed) { presWin.focus(); return; }
+  presWin = window.open(location.pathname + '?mode=presenter#' + (current + 1), 'presenter', 'width=1280,height=800');
+}
+
+// ── Keyboard ─────────────────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (blackoutOn && e.key !== 'b' && e.key !== 'B') return;
+  switch (e.key) {
+    case 'ArrowRight': case 'ArrowDown': case ' ': case 'PageDown': e.preventDefault(); if (!overviewOpen) next(); break;
+    case 'ArrowLeft':  case 'ArrowUp':   case 'PageUp':             e.preventDefault(); if (!overviewOpen) prev(); break;
+    case 'Home': goTo(0); break;
+    case 'End': goTo(TOTAL - 1); break;
+    case 'Escape': case 'o': case 'O': toggleOverview(); break;
+    case 'b': case 'B': toggleBlackout(); break;
+    case 'p': case 'P': if (!isPresenter) openPresenter(); break;
+    case 'f': case 'F': toggleFullscreen(); break;
+  }
+});
+
+// ── Mouse: click right/left half to navigate; hide chrome when idle ─────────
+document.getElementById('stage').addEventListener('click', (e) => {
+  if (e.clientX > window.innerWidth / 2) next(); else prev();
+});
+let idleTimer;
+document.addEventListener('mousemove', () => {
+  document.body.classList.remove('idle');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => document.body.classList.add('idle'), 2000);
+});
+
+// ── Touch: horizontal swipe ─────────────────────────────────────────────────
+let tx = 0, ty = 0;
+document.addEventListener('touchstart', (e) => { if (e.touches.length === 1) { tx = e.touches[0].clientX; ty = e.touches[0].clientY; } }, { passive: true });
+document.addEventListener('touchend', (e) => {
+  if (overviewOpen || blackoutOn || isPresenter) return;
+  const t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) dx < 0 ? next() : prev();
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+if (isPresenter) {
+  document.body.classList.add('presenter');
+  const start = Date.now();
+  setInterval(() => {
+    const s = Math.floor((Date.now() - start) / 1000);
+    document.getElementById('p-timer').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }, 1000);
+}
+const fromHash = parseInt(location.hash.slice(1), 10);
+goTo(Number.isFinite(fromHash) ? fromHash - 1 : 0, true);
+setTimeout(() => document.body.classList.add('idle'), 3000);
+</script>
+</body>
+</html>
