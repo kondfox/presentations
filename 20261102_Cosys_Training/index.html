@@ -31,7 +31,7 @@
   .reveal { opacity: 0; animation: fade .9s var(--ease-out) forwards; }
   @keyframes fade { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
-  .brand { position: fixed; z-index: 3; right: clamp(20px, 5vw, 80px); top: clamp(28px, 6vh, 68px); height: 28px; opacity: .85; }
+  .brand { position: fixed; z-index: 3; right: clamp(20px, 5vw, 80px); top: clamp(28px, 6vh, 64px); height: clamp(40px, 6vh, 56px); opacity: .9; }
 
   /* ---------- Topic space ---------- */
   .space { position: fixed; inset: 0; z-index: 2; }
@@ -184,7 +184,7 @@
     </h1>
     <div class="meta reveal" style="animation-delay:.45s">with <b>Péter Tamás</b> · Attrecto</div>
   </header>
-  <img class="brand reveal" style="animation-delay:.3s" src="assets/logos/attrecto-white.png" alt="Attrecto">
+  <img class="brand reveal" style="animation-delay:.3s" src="assets/logos/attrecto-white-trim.png" alt="Attrecto">
 
   <main class="space" id="space"></main>
 
@@ -231,7 +231,7 @@ if (new URLSearchParams(location.search).has('demo')) {
    clear of the title block in the top-left. Main topic takes the first. */
 const SPOTS = [
   [24, 66],                       // main
-  [55, 26], [81, 22], [62, 55], [89, 50],
+  [55, 26], [79, 28], [62, 55], [89, 50],
   [45, 80], [77, 81], [45, 46], [8, 86], [93, 83],
 ];
 const DEPTH = [18, 10, 6, 14, 8, 12, 9, 16, 11, 7];   // parallax strength per spot
