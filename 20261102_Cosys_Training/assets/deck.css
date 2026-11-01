@@ -1,0 +1,33 @@
+/* Shared slide-deck layout: a 1600×900 stage scaled to fit, slides, entrance helpers, nav chrome. */
+html, body { height: 100%; overflow: hidden; }
+
+.viewport { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; }
+.stage { position: relative; width: 1600px; height: 900px; flex: none; transform-origin: center; }
+.slide {
+  position: absolute; inset: 0; padding: 72px 96px;
+  opacity: 0; visibility: hidden; transform: scale(.985);
+  transition: opacity .6s var(--ease-out), transform .8s var(--ease-out), visibility 0s .6s;
+}
+.slide.active { opacity: 1; visibility: visible; transform: none; transition: opacity .6s var(--ease-out), transform .8s var(--ease-out), visibility 0s; }
+
+/* entrance helpers: only run while the slide is active, restart on re-entry */
+.in { opacity: 0; }
+.active .in { animation: up .9s var(--d, 0s) var(--ease-out) forwards; }
+@keyframes up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+.slide-head .kicker { display: block; margin-bottom: 14px; }
+.slide-head h2 { font-family: var(--display); font-weight: 700; font-size: 64px; letter-spacing: -.03em; margin: 0; line-height: 1; }
+
+/* nav chrome (built by deck.js) */
+.chrome {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 28px; font-size: 13px; color: var(--faint); transition: opacity .4s;
+}
+.chrome a, .chrome button { color: var(--muted); text-decoration: none; background: none; border: 0; font: inherit; cursor: pointer; padding: 6px 8px; border-radius: 8px; }
+.chrome a:hover, .chrome button:hover { color: var(--fg); background: rgba(255,255,255,.06); }
+.dots { display: flex; gap: 8px; }
+.dots button { width: 28px; height: 4px; padding: 0; border-radius: 4px; background: rgba(255,255,255,.14); transition: background .3s, width .4s var(--ease-out); }
+.dots button.on { background: var(--fg); width: 44px; }
+.dots button:hover { background: rgba(255,255,255,.4); }
+.chrome .right { display: flex; gap: 4px; align-items: center; }
+body.idle .chrome { opacity: 0; }

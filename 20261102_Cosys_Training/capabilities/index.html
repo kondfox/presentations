@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Capabilities — AI Training session</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/deck.css">
+<style>
+  /* ---------- Overview ---------- */
+  .ov h1 { font-family: var(--display); font-weight: 700; font-size: 132px; letter-spacing: -.045em; line-height: .9; margin: 18px 0 0; }
+  .ov-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; margin-top: 60px; }
+  .ccard { display: flex; flex-direction: column; border-radius: 24px; overflow: hidden; text-align: left; cursor: pointer; padding: 0;
+           background: var(--glass); border: 1px solid var(--line); color: inherit; font: inherit; transition: transform .5s var(--ease-out), border-color .3s; }
+  .ccard:hover { transform: translateY(-6px); border-color: var(--line-strong); }
+  .ccard img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; transition: transform 1.2s var(--ease-out); }
+  .ccard:hover img { transform: scale(1.04); }
+  .ccard .meta { padding: 20px 24px 24px; }
+  .ccard .num { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--muted); }
+  .ccard h3 { font-family: var(--display); font-size: 32px; letter-spacing: -.02em; margin: 6px 0 4px; }
+  .ccard p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+  /* ---------- Showcase slide ---------- */
+  .slide.show { padding: 56px 64px 70px; }
+  .show h2 { font-family: var(--display); font-weight: 700; font-size: 60px; letter-spacing: -.035em; margin: 12px 0 0; line-height: 1; }
+  .frame-wrap { position: absolute; left: 64px; top: 176px; width: 1100px; height: 654px; perspective: 1800px; }
+  .frame { position: absolute; left: 0; right: 0; top: 0; border-radius: 18px; overflow: hidden; background: #0b0d14; border: 1px solid var(--line-strong);
+           box-shadow: 0 40px 90px -30px rgba(0,0,0,.9); transform-origin: 50% 100%; }
+  .active .frame { animation: tiltin 1.2s .15s var(--ease-out) both; }
+  @keyframes tiltin { from { opacity: 0; transform: rotateX(14deg) translateY(40px) scale(.96); } to { opacity: 1; transform: none; } }
+  .frame-wrap .glow { position: absolute; inset: 30px -20px -10px; border-radius: 40px; filter: blur(60px); opacity: .45; background: var(--g); z-index: -1; }
+  .bar { height: 44px; display: flex; align-items: center; gap: 8px; padding: 0 16px; background: #161a26; border-bottom: 1px solid var(--line); }
+  .bar i { width: 12px; height: 12px; border-radius: 50%; background: #3a3f52; }
+  .bar i:nth-child(1) { background: #ff5f57; } .bar i:nth-child(2) { background: #febc2e; } .bar i:nth-child(3) { background: #28c840; }
+  .bar .url { flex: 1; margin: 0 60px 0 18px; height: 28px; border-radius: 8px; background: #0b0d14; display: flex; align-items: center; justify-content: center; gap: 8px;
+              font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .bar .live { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; color: var(--mint); display: flex; align-items: center; gap: 6px; opacity: 0; transition: opacity .4s; }
+  .bar .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); animation: ping 2s infinite; }
+  @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(124,243,208,.6); } 80%, 100% { box-shadow: 0 0 0 8px rgba(124,243,208,0); } }
+  .frame.loaded .live { opacity: 1; }
+  .view { position: relative; height: 610px; overflow: hidden; background: #0b0d14; }
+  .view img.shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .view iframe { position: absolute; left: 0; top: 0; width: 1440px; height: 798px; border: 0; transform-origin: 0 0; transform: scale(.7639); opacity: 0; transition: opacity .6s; background: #fff; }
+  .frame.loaded .view iframe { opacity: 1; }
+
+  .video { position: relative; height: 619px; cursor: pointer; }
+  .video img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .video .play { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; translate: -50% -50%; border-radius: 50%; display: grid; place-items: center;
+                 background: rgba(255,255,255,.14); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.35); transition: transform .4s var(--ease-out), background .3s; }
+  .video .play::before { content: ""; position: absolute; inset: -14px; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); animation: ring 2.2s infinite; }
+  @keyframes ring { from { transform: scale(.85); opacity: 1; } to { transform: scale(1.3); opacity: 0; } }
+  .video:hover .play { transform: scale(1.08); background: rgba(255,255,255,.22); }
+  .video .play svg { margin-left: 8px; }
+  .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  .side { position: absolute; left: 1200px; right: 64px; top: 176px; display: flex; flex-direction: column; gap: 18px; }
+  .qrcard { padding: 18px; border-radius: 20px; background: var(--glass); border: 1px solid var(--line); text-decoration: none; color: inherit; display: block; transition: border-color .3s; }
+  .qrcard:hover { border-color: var(--line-strong); }
+  .qrcard .qr { width: 100%; aspect-ratio: 1; background: #fff; border-radius: 12px; padding: 12px; }
+  .qrcard .qr svg { display: block; width: 100%; height: 100%; }
+  .qrcard b { display: block; margin-top: 14px; font-family: var(--display); font-size: 21px; }
+  .qrcard span { display: block; margin-top: 4px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); word-break: break-all; }
+  .hint { position: absolute; left: 64px; bottom: 26px; font-size: 13px; color: var(--muted); opacity: 0; transition: opacity .3s; pointer-events: none; }
+  body.in-frame .active .hint { opacity: 1; }
+</style>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+  <div class="viewport">
+    <div class="stage" id="stage">
+
+      <!-- 0 · Overview -->
+      <section class="slide ov" data-title="Capabilities">
+        <span class="kicker in" style="--d:.1s">AI Training session</span>
+        <h1 class="in" style="--d:.2s"><span class="grad-text">Capabilities</span></h1>
+        <div class="ov-grid">
+          <button class="ccard in" style="--d:.4s" data-go="1"><img src="assets/video.jpg" alt=""><div class="meta"><span class="num">01</span><h3>Music video</h3><p>Csak még egy · CalmVink</p></div></button>
+          <button class="ccard in" style="--d:.55s" data-go="2"><img src="assets/apocalypships.jpg" alt=""><div class="meta"><span class="num">02</span><h3>Hobby projects</h3><p>apocalypships.com</p></div></button>
+          <button class="ccard in" style="--d:.7s" data-go="3"><img src="assets/rr-trans.jpg" alt=""><div class="meta"><span class="num">03</span><h3>Quick prototypes</h3><p>rr-trans-gqgg.vercel.app</p></div></button>
+        </div>
+      </section>
+
+      <!-- 1 · Music video -->
+      <section class="slide show" data-title="Music video" data-video="a59I3ukdj5Q">
+        <span class="kicker in" style="--d:.1s">Capabilities · 01</span>
+        <h2 class="in" style="--d:.15s">Music video</h2>
+        <div class="frame-wrap" style="--g:radial-gradient(circle, #8b7bff, transparent 70%)"><div class="glow"></div>
+          <div class="frame"><div class="video"><img src="assets/video.jpg" alt="Csak még egy — music video"><span class="play"><svg width="44" height="44" viewBox="0 0 24 24" fill="#fff"><path d="M6 4l15 8-15 8z"/></svg></span></div></div>
+        </div>
+        <div class="side in" style="--d:.4s">
+          <a class="qrcard" href="https://www.youtube.com/watch?v=a59I3ukdj5Q" target="_blank" rel="noopener">
+            <div class="qr" data-qr="https://www.youtube.com/watch?v=a59I3ukdj5Q"></div><b>Csak még egy</b><span>youtube.com/watch?v=a59I3ukdj5Q</span></a>
+        </div>
+        <div class="hint">Click outside the video to get the slide controls back</div>
+      </section>
+
+      <!-- 2 · Hobby projects -->
+      <section class="slide show" data-title="Hobby projects" data-site="https://apocalypships.com/">
+        <span class="kicker in" style="--d:.1s">Capabilities · 02</span>
+        <h2 class="in" style="--d:.15s">Hobby projects</h2>
+        <div class="frame-wrap" style="--g:radial-gradient(circle, #e0a526, transparent 70%)"><div class="glow"></div>
+          <div class="frame"><div class="bar"><i></i><i></i><i></i><span class="url">🔒 apocalypships.com</span><span class="live">LIVE</span></div>
+            <div class="view"><img class="shot" src="assets/apocalypships.jpg" alt="Apocalypships"></div></div>
+        </div>
+        <div class="side in" style="--d:.4s">
+          <a class="qrcard" href="https://apocalypships.com/" target="_blank" rel="noopener">
+            <div class="qr" data-qr="https://apocalypships.com/"></div><b>Apocalypships</b><span>apocalypships.com</span></a>
+        </div>
+        <div class="hint">Click outside the page to get the slide controls back</div>
+      </section>
+
+      <!-- 3 · Quick prototypes -->
+      <section class="slide show" data-title="Quick prototypes" data-site="https://rr-trans-gqgg.vercel.app/">
+        <span class="kicker in" style="--d:.1s">Capabilities · 03</span>
+        <h2 class="in" style="--d:.15s">Quick prototypes</h2>
+        <div class="frame-wrap" style="--g:radial-gradient(circle, #3987e5, transparent 70%)"><div class="glow"></div>
+          <div class="frame"><div class="bar"><i></i><i></i><i></i><span class="url">🔒 rr-trans-gqgg.vercel.app</span><span class="live">LIVE</span></div>
+            <div class="view"><img class="shot" src="assets/rr-trans.jpg" alt="RR Fuvar prototype"></div></div>
+        </div>
+        <div class="side in" style="--d:.4s">
+          <a class="qrcard" href="https://rr-trans-gqgg.vercel.app/" target="_blank" rel="noopener">
+            <div class="qr" data-qr="https://rr-trans-gqgg.vercel.app/"></div><b>RR Fuvar prototype</b><span>rr-trans-gqgg.vercel.app</span></a>
+        </div>
+        <div class="hint">Click outside the page to get the slide controls back</div>
+      </section>
+
+    </div>
+  </div>
+
+<script src="../assets/qrcode.min.js"></script>
+<script>
+document.querySelectorAll('[data-qr]').forEach(el => {
+  const q = qrcode(0, 'M'); q.addData(el.dataset.qr); q.make();
+  el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+});
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => deck.go(Number(b.dataset.go))));
+
+/* Live sites: load the iframe the first time the slide is shown (the screenshot stays underneath until it's ready) */
+document.querySelectorAll('.slide[data-site]').forEach(s => {
+  s.addEventListener('slideenter', () => {
+    const view = s.querySelector('.view'), frame = s.querySelector('.frame');
+    if (view.querySelector('iframe')) return;
+    const f = document.createElement('iframe');
+    f.src = s.dataset.site; f.loading = 'eager'; f.title = s.dataset.title;
+    f.onload = () => frame.classList.add('loaded');
+    view.appendChild(f);
+  });
+});
+
+/* Music video: plays inline (YouTube refuses embeds from file://, so locally it opens YouTube instead); stops when leaving the slide */
+document.querySelectorAll('.slide[data-video]').forEach(s => {
+  const id = s.dataset.video, box = s.querySelector('.video');
+  box.addEventListener('click', () => {
+    if (box.querySelector('iframe')) return;
+    if (location.protocol === 'file:') { window.open('https://www.youtube.com/watch?v=' + id, '_blank'); return; }
+    const f = document.createElement('iframe');
+    f.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`;
+    f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true; f.title = 'Csak még egy';
+    box.appendChild(f);
+  });
+  s.addEventListener('slideleave', () => box.querySelector('iframe')?.remove());
+});
+
+/* When an embedded page takes keyboard focus, the arrow keys go to it — show a hint until focus comes back */
+addEventListener('blur', () => setTimeout(() => { if (document.activeElement?.tagName === 'IFRAME') document.body.classList.add('in-frame'); }));
+addEventListener('focus', () => document.body.classList.remove('in-frame'));
+document.addEventListener('pointerdown', () => document.body.classList.remove('in-frame'));
+</script>
+<script src="../assets/deck.js"></script>
+</body>
+</html>

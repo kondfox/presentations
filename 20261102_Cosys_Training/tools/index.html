@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tools — AI Training session</title>
+<link rel="stylesheet" href="../assets/theme.css">
+<link rel="stylesheet" href="../assets/deck.css">
+<style>
+  :root {
+    --ok: #2fb37a; --warn: #e0a526; --crit: #e5534b;      /* status: reserved for state, always with icon + label */
+    --c-vel: #199e70; --c-qual: #9085e9; --c-sec: #d95926; --c-ai: #3987e5;   /* dashboard series (validated, dark) */
+  }
+
+  /* ---------- Overview ---------- */
+  .ov h1 { font-family: var(--display); font-weight: 700; font-size: 132px; letter-spacing: -.045em; line-height: .9; margin: 18px 0 0; }
+  .ov-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 22px; margin-top: 56px; }
+  .tcard {
+    grid-column: span 2; display: flex; gap: 20px; align-items: flex-start; padding: 26px 28px; border-radius: 22px; min-height: 170px;
+    background: var(--glass); border: 1px solid var(--line); color: inherit; font: inherit; text-align: left; cursor: pointer;
+    transition: transform .5s var(--ease-out), border-color .3s;
+  }
+  .tcard:nth-child(4) { grid-column: 2 / span 2; }
+  .tcard:hover { transform: translateY(-5px); border-color: var(--line-strong); }
+  .tcard .ic { flex: none; width: 58px; height: 58px; border-radius: 16px; display: grid; place-items: center; font-size: 28px;
+               background: radial-gradient(circle at 30% 25%, hsl(var(--h) 90% 75%), hsl(var(--h) 70% 45%)); box-shadow: 0 10px 30px -10px hsl(var(--h) 80% 50% / .7); }
+  .tcard .num { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; color: var(--muted); }
+  .tcard h3 { font-family: var(--display); font-size: 28px; letter-spacing: -.02em; margin: 6px 0 6px; }
+  .tcard p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.45; }
+
+  /* ---------- Tool slide layout ---------- */
+  .slide.tool { display: grid; grid-template-columns: 470px 1fr; gap: 44px; padding: 60px 64px 76px; }
+  .tt { display: flex; flex-direction: column; min-height: 0; }
+  .tt h2 { font-family: var(--display); font-weight: 700; font-size: 64px; letter-spacing: -.035em; line-height: .95; margin: 14px 0 18px; }
+  .tt .lead { font-size: 21px; line-height: 1.45; margin: 0 0 18px; color: var(--fg); }
+  .tt ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+  .tt li { position: relative; padding-left: 22px; color: #c3c8d6; font-size: 16.5px; line-height: 1.5; }
+  .tt li::before { content: ""; position: absolute; left: 2px; top: .62em; width: 8px; height: 8px; border-radius: 2px; background: var(--mint); transform: rotate(45deg); }
+  .tt li b { color: var(--fg); font-weight: 600; }
+  .tt code { font-family: var(--mono); font-size: .88em; color: var(--mint); }
+  .links { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 20px; }
+  .lnk { display: flex; align-items: center; gap: 16px; padding: 10px 16px 10px 10px; border-radius: 16px; background: var(--glass); border: 1px solid var(--line);
+         text-decoration: none; color: inherit; transition: border-color .3s; }
+  .lnk:hover { border-color: var(--line-strong); }
+  .lnk .qr { flex: none; width: 92px; height: 92px; background: #fff; border-radius: 10px; padding: 6px; }
+  .lnk .qr svg { display: block; width: 100%; height: 100%; }
+  .lnk b { display: block; font-family: var(--display); font-size: 19px; }
+  .lnk span { display: block; font-family: var(--mono); font-size: 12.5px; color: var(--muted); margin-top: 4px; word-break: break-all; }
+  .viz { position: relative; border-radius: 24px; background: rgba(10,12,20,.6); border: 1px solid var(--line); overflow: hidden; }
+  .viz .note { position: absolute; left: 20px; bottom: 14px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .08em; color: var(--faint); }
+  .viz canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* ---------- LLM Wiki graph ---------- */
+  .wiki-legend { position: absolute; left: 20px; top: 16px; display: flex; flex-wrap: wrap; gap: 6px 14px; max-width: 92%; font-size: 12.5px; color: var(--muted); pointer-events: none; }
+  .wiki-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+
+  /* ---------- Merge risk ---------- */
+  .mr { position: absolute; inset: 0; }
+  .mr .col-h { position: absolute; top: 18px; font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; color: var(--muted); text-transform: uppercase; }
+  .mr .queue { position: absolute; left: 22px; top: 50px; width: 250px; }
+  .pr { position: absolute; left: 0; width: 250px; padding: 11px 13px; border-radius: 12px; background: #161a26; border: 1px solid var(--line-strong);
+        box-shadow: 0 10px 24px -14px rgba(0,0,0,.8); font-size: 13.5px; line-height: 1.3; }
+  .pr .no { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+  .pr .tl { font-weight: 600; margin-top: 2px; }
+  .pr .badge { display: none; margin-top: 7px; font-family: var(--mono); font-size: 11px; padding: 2px 8px; border-radius: 6px; width: max-content; }
+  .pr.done .badge { display: block; }
+  .ci { position: absolute; left: 296px; top: 50px; width: 300px; bottom: 44px; border-radius: 16px; border: 1px dashed rgba(124,243,208,.35); background: rgba(124,243,208,.03); }
+  .ci .hd { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 13px; }
+  .ci .gear { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--mint); border-top-color: transparent; }
+  .ci.busy .gear { animation: turn .8s linear infinite; }
+  .ci .cur { padding: 14px 16px; font-size: 14px; min-height: 52px; }
+  .ci .cur .tl { font-weight: 600; }
+  .ci .files { padding: 0 16px; display: grid; gap: 8px; }
+  .frow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; font-family: var(--mono); font-size: 11.5px; opacity: 0; transform: translateX(-8px); transition: opacity .3s, transform .4s var(--ease-out); }
+  .frow.on { opacity: 1; transform: none; }
+  .frow .p { color: #c3c8d6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .frow .why { grid-column: 1 / -1; color: var(--faint); font-size: 11px; margin-top: -4px; }
+  .chip { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+  .t-safe { color: #8ff0bf; background: rgba(47,179,122,.16); border: 1px solid rgba(47,179,122,.5); }
+  .t-risky { color: #ffd479; background: rgba(224,165,38,.14); border: 1px solid rgba(224,165,38,.5); }
+  .t-very-risky { color: #ff9a94; background: rgba(229,83,75,.16); border: 1px solid rgba(229,83,75,.55); }
+  .ci .verdict { position: absolute; left: 16px; right: 16px; bottom: 16px; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.04); font-size: 13.5px;
+                 opacity: 0; transform: translateY(8px); transition: opacity .3s, transform .4s var(--ease-out); }
+  .ci .verdict.on { opacity: 1; transform: none; }
+  .ci .verdict small { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+  .lanes { position: absolute; left: 620px; right: 18px; top: 50px; bottom: 44px; display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 10px; }
+  .lane { position: relative; border-radius: 14px; padding: 12px 14px; background: rgba(255,255,255,.025); border: 1px solid var(--line); overflow: hidden; }
+  .lane .lh { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; }
+  .lane .lh .ico { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; color: #0b0d14; font-weight: 800; }
+  .lane .lg { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .lane .cnt { position: absolute; right: 14px; top: 10px; font-family: var(--display); font-weight: 700; font-size: 26px; color: var(--muted); }
+  .lane.safe { box-shadow: inset 3px 0 0 var(--ok); } .lane.safe .ico { background: var(--ok); }
+  .lane.risky { box-shadow: inset 3px 0 0 var(--warn); } .lane.risky .ico { background: var(--warn); }
+  .lane.very-risky { box-shadow: inset 3px 0 0 var(--crit); } .lane.very-risky .ico { background: var(--crit); }
+  .lane .stack { position: absolute; left: 14px; right: 14px; top: 64px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-end; }
+  .mini { position: relative; height: 30px; padding: 0 9px; border-radius: 8px; display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px;
+          background: #161a26; border: 1px solid var(--line-strong); white-space: nowrap; }
+
+  /* ---------- Critics ---------- */
+  .cr { position: absolute; inset: 0; }
+  .cr .track { position: absolute; left: 40px; right: 40px; top: 100px; height: 2px; background: rgba(255,255,255,.1); }
+  .cr .st { position: absolute; top: 100px; translate: -50% -50%; text-align: center; }
+  .cr .st .dot { width: 64px; height: 64px; margin: 0 auto; border-radius: 18px; display: grid; place-items: center; font-size: 26px; background: #161a26; border: 1px solid var(--line-strong); }
+  .cr .st.gate .dot { border-radius: 50%; background: radial-gradient(circle at 35% 30%, #3b3f52, #161a26); border-color: rgba(180,166,255,.5); }
+  .cr .st .lb { position: absolute; left: 50%; translate: -50% 0; top: 74px; font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .cr .st.gate.active .dot { box-shadow: 0 0 0 6px rgba(180,166,255,.15), 0 0 40px rgba(180,166,255,.45); }
+  .cr .doc { position: absolute; top: 330px; width: 120px; height: 150px; translate: -50% -50%; border-radius: 10px; background: #f4f1ea; color: #222; padding: 12px;
+             box-shadow: 0 18px 40px -14px rgba(0,0,0,.8); z-index: 3; overflow: hidden; }
+  .cr .doc .h { font-family: var(--mono); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; }
+  .cr .doc .ln { height: 6px; border-radius: 3px; background: #c9c4b8; margin-top: 8px; }
+  .cr .doc.code { background: #10131c; color: #cfd5e4; border: 1px solid var(--line-strong); }
+  .cr .doc.code .ln { background: #2a3044; } .cr .doc.code .ln.add { background: rgba(47,179,122,.55); } .cr .doc.code .ln.del { background: rgba(229,83,75,.5); }
+  .cr .doc .rev { position: absolute; right: 8px; top: 9px; font-family: var(--mono); font-size: 9.5px; color: #8a8576; }
+  .cr .doc.code .rev { color: var(--muted); }
+  .cr .scan { position: absolute; left: 0; right: 0; height: 26px; top: -30px; background: linear-gradient(transparent, rgba(180,166,255,.55), transparent); }
+  .cr .stamp { position: absolute; left: 50%; top: 52%; translate: -50% -50%; rotate: -14deg; padding: 4px 8px; border: 3px solid; border-radius: 6px;
+               font-family: var(--mono); font-weight: 700; font-size: 12px; letter-spacing: .04em; white-space: nowrap; opacity: 0; background: rgba(255,255,255,.85); }
+  .cr .stamp.no { color: #b9741a; border-color: #d99a2e; } .cr .stamp.yes { color: #18804f; border-color: #2fb37a; }
+  .cr .concerns { position: absolute; top: 262px; display: grid; gap: 8px; width: 330px; }
+  .cr .beam { position: absolute; top: 134px; width: 2px; height: 120px; translate: -50% 0; opacity: 0; background: linear-gradient(rgba(180,166,255,.9), rgba(180,166,255,0)); }
+  .cr .cc { padding: 9px 12px; border-radius: 10px; font-size: 13.5px; line-height: 1.35; background: rgba(224,165,38,.1); border: 1px solid rgba(224,165,38,.4); color: #f3dfb0; }
+  .cr .cc::before { content: "! "; font-weight: 800; color: var(--warn); }
+  .cr .round { position: absolute; top: 236px; translate: -50% 0; font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .cr .json { position: absolute; left: 22px; right: 22px; bottom: 40px; padding: 14px 16px; border-radius: 12px; background: #0a0c12; border: 1px solid var(--line);
+              font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: #c3c8d6; min-height: 100px; white-space: pre-wrap; }
+  .cr .json .k { color: #b4a6ff; } .cr .json .s { color: #8ff0bf; } .cr .json .w { color: #ffd479; }
+  .cr .json .cap { display: block; color: var(--faint); font-size: 11px; letter-spacing: .1em; margin-bottom: 6px; }
+
+  /* ---------- Credential broker ---------- */
+  .cb { position: absolute; inset: 0; }
+  .cb .node { position: absolute; translate: -50% -50%; text-align: center; }
+  .cb .node .bx { width: 120px; height: 120px; border-radius: 28px; display: grid; place-items: center; font-size: 48px; background: #161a26; border: 1px solid var(--line-strong); margin: 0 auto; }
+  .cb .node.broker .bx { width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #2c3550, #121521); border-color: rgba(124,243,208,.45);
+                         box-shadow: 0 0 0 10px rgba(124,243,208,.05), 0 0 60px rgba(124,243,208,.18); }
+  .cb .node .nm { margin-top: 10px; font-family: var(--display); font-weight: 700; font-size: 18px; }
+  .cb .node .sb { font-size: 12.5px; color: var(--muted); }
+  .cb .vault { position: absolute; translate: -50% 0; width: 230px; padding: 12px 14px; border-radius: 14px; background: #0f121b; border: 1px solid var(--line-strong); text-align: center; }
+  .cb .vault .s { font-family: var(--mono); font-size: 13px; color: #c3c8d6; margin-top: 4px; }
+  .cb .vault .lk { font-size: 12px; color: var(--muted); }
+  .cb .policy { position: absolute; left: 22px; top: 18px; width: 380px; padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--line); font-family: var(--mono); font-size: 12px; }
+  .cb .policy .t { color: var(--muted); letter-spacing: .1em; font-size: 11px; margin-bottom: 6px; }
+  .cb .rule { display: flex; justify-content: space-between; gap: 8px; padding: 4px 6px; border-radius: 6px; color: #c3c8d6; transition: background .3s; }
+  .cb .rule.hit-ok { background: rgba(47,179,122,.18); } .cb .rule.hit-no { background: rgba(229,83,75,.18); }
+  .cb .msg { position: absolute; translate: -50% -50%; padding: 7px 12px; border-radius: 999px; font-family: var(--mono); font-size: 12.5px; white-space: nowrap; z-index: 4;
+             background: #1e2333; border: 1px solid var(--line-strong); color: var(--fg); box-shadow: 0 10px 24px -10px rgba(0,0,0,.8); }
+  .cb .msg.token { background: linear-gradient(135deg, #7cf3d0, #5fd4b4); color: #07261d; border: 0; font-weight: 700; }
+  .cb .msg.ok { background: rgba(47,179,122,.2); border-color: rgba(47,179,122,.6); color: #8ff0bf; }
+  .cb .msg.no { background: rgba(229,83,75,.2); border-color: rgba(229,83,75,.6); color: #ff9a94; }
+  .cb .held { position: absolute; translate: -50% 0; display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--muted); opacity: 0; transition: opacity .3s; }
+  .cb .held.on { opacity: 1; }
+  .cb .ttl { width: 26px; height: 26px; border-radius: 50%; background: conic-gradient(var(--mint) calc(var(--p, 1) * 360deg), rgba(255,255,255,.1) 0); }
+  .cb .log { position: absolute; left: 22px; right: 22px; bottom: 40px; height: 118px; padding: 10px 14px; border-radius: 12px; background: #0a0c12; border: 1px solid var(--line);
+             font-family: var(--mono); font-size: 12px; line-height: 1.6; color: #aab0c0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; }
+  .cb .log .cap { color: var(--faint); font-size: 11px; letter-spacing: .1em; }
+  .cb .log .g { color: #8ff0bf; } .cb .log .r { color: #ff9a94; } .cb .log .y { color: #ffd479; }
+  .cb svg.wires { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  /* ---------- Metrics dashboard ---------- */
+  .dash { position: absolute; inset: 0; padding: 18px 18px 36px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14px; }
+  .panel { position: relative; border-radius: 16px; background: rgba(255,255,255,.025); border: 1px solid var(--line); padding: 14px 16px 10px; display: flex; flex-direction: column; }
+  .panel .ph { display: flex; justify-content: space-between; align-items: baseline; }
+  .panel .pt { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .panel .pt i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .panel .pu { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .panel .pv { font-family: var(--display); font-weight: 700; font-size: 34px; letter-spacing: -.02em; text-align: right; line-height: 1; }
+  .panel .pd { font-size: 12.5px; color: var(--muted); text-align: right; margin-top: 4px; }
+  .panel svg { flex: 1; width: 100%; min-height: 0; overflow: visible; }
+  .panel .axis { font-family: var(--mono); font-size: 10px; fill: var(--faint); }
+  .panel .grid { stroke: rgba(255,255,255,.06); stroke-width: 1; }
+  .panel .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .panel .xh { stroke: rgba(255,255,255,.35); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; }
+  .panel .hdot { opacity: 0; stroke: #0d0f16; stroke-width: 2; }
+  .dash .tip { position: absolute; pointer-events: none; padding: 8px 10px; border-radius: 10px; background: #1b2030; border: 1px solid var(--line-strong); font-size: 12.5px;
+               box-shadow: 0 10px 24px -10px rgba(0,0,0,.8); opacity: 0; transition: opacity .15s; white-space: nowrap; z-index: 5; }
+  .dash .tip b { display: block; margin-bottom: 2px; }
+  .dash .tip span { color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
+  <div class="viewport">
+    <div class="stage" id="stage">
+
+      <!-- 0 · Overview -->
+      <section class="slide ov" data-title="Tools">
+        <span class="kicker in" style="--d:.1s">AI Training session</span>
+        <h1 class="in" style="--d:.2s"><span class="grad-text">Tools</span></h1>
+        <div class="ov-grid">
+          <button class="tcard in" style="--d:.4s;--h:265" data-go="1"><span class="ic">🕸️</span><span><span class="num">01</span><h3>LLM Wiki</h3><p>A knowledge base the agent writes and keeps current.</p></span></button>
+          <button class="tcard in" style="--d:.5s;--h:30" data-go="2"><span class="ic">🚦</span><span><span class="num">02</span><h3>Merge Risk</h3><p>Every PR gets a risk tier — and the review it calls for.</p></span></button>
+          <button class="tcard in" style="--d:.6s;--h:320" data-go="3"><span class="ic">🧐</span><span><span class="num">03</span><h3>Critics</h3><p>Skeptical reviewer agents for plans and solutions.</p></span></button>
+          <button class="tcard in" style="--d:.7s;--h:165" data-go="4"><span class="ic">🔐</span><span><span class="num">04</span><h3>Credential broker</h3><p>Agents get access, never secrets.</p></span></button>
+          <button class="tcard in" style="--d:.8s;--h:210" data-go="5"><span class="ic">📈</span><span><span class="num">05</span><h3>Project metrics</h3><p>Velocity, quality, security and AI usage over time.</p></span></button>
+        </div>
+      </section>
+
+      <!-- 1 · LLM Wiki -->
+      <section class="slide tool" data-title="LLM Wiki" data-anim="wiki">
+        <div class="tt">
+          <span class="kicker in" style="--d:.1s">Tools · 01</span>
+          <h2 class="in" style="--d:.15s">LLM Wiki</h2>
+          <p class="lead in" style="--d:.25s">A persistent knowledge base for a repository, written and kept current by the coding agent — Andrej Karpathy's LLM Wiki pattern.</p>
+          <ul class="in" style="--d:.35s">
+            <li>Captures what the code alone doesn't show: <b>architecture, decisions, postmortems, hacks, tech debt, runbooks.</b></li>
+            <li>Three layers: <b>read-only sources</b> → <b>the wiki</b> (cross-linked Markdown) → <b>the schema</b> that says when and how to update it.</li>
+            <li>Every session updates it as a side effect of normal work. <code>[[wiki-links]]</code> make it a graph you can browse in Obsidian.</li>
+          </ul>
+          <div class="links in" style="--d:.45s">
+            <a class="lnk" href="https://github.com/kondfox/ai-utils/blob/main/seeds/llm-wiki-seed-prompt.md" target="_blank" rel="noopener">
+              <div class="qr" data-qr="https://github.com/kondfox/ai-utils/blob/main/seeds/llm-wiki-seed-prompt.md"></div>
+              <div><b>Seed prompt</b><span>github.com/kondfox/ai-utils/…/llm-wiki-seed-prompt.md</span></div>
+            </a>
+          </div>
+        </div>
+        <div class="viz in" style="--d:.2s" id="vizWiki">
+          <canvas></canvas>
+          <div class="wiki-legend"></div>
+          <div class="note">Obsidian graph view · illustrative wiki · hover a node</div>
+        </div>
+      </section>
+
+      <!-- 2 · Merge Risk -->
+      <section class="slide tool" data-title="Merge Risk" data-anim="merge">
+        <div class="tt">
+          <span class="kicker in" style="--d:.1s">Tools · 02</span>
+          <h2 class="in" style="--d:.15s">Merge Risk</h2>
+          <p class="lead in" style="--d:.25s">Scores how risky a pull request is to merge, and gates the merge on the review that risk calls for.</p>
+          <ul class="in" style="--d:.35s">
+            <li>Each file gets the tier of the riskiest rule it matches: <b>path zones, patterns in added lines, PR size.</b></li>
+            <li>The PR gets the tier of its riskiest file. <b>Never averaged</b> — one risky file can't hide among a hundred safe ones.</li>
+            <li>Runs as a CI step: a <b>label</b>, a <b>comment</b> telling the reviewer what to look at, and a <b>commit status</b> that blocks the merge until the tier's approvals are in.</li>
+          </ul>
+          <div class="links in" style="--d:.45s">
+            <a class="lnk" href="https://github.com/attrecto/merge-risk" target="_blank" rel="noopener">
+              <div class="qr" data-qr="https://github.com/attrecto/merge-risk"></div>
+              <div><b>merge-risk</b><span>github.com/attrecto/merge-risk</span></div>
+            </a>
+          </div>
+        </div>
+        <div class="viz in" style="--d:.2s" id="vizMerge">
+          <div class="mr">
+            <span class="col-h" style="left:22px">Pull requests</span>
+            <span class="col-h" style="left:296px">CI · merge-risk</span>
+            <span class="col-h" style="left:620px">Tier</span>
+            <div class="queue"></div>
+            <div class="ci"><div class="hd"><span class="gear"></span>merge-risk / gate</div><div class="cur"></div><div class="files"></div><div class="verdict"></div></div>
+            <div class="lanes">
+              <div class="lane safe" data-t="safe"><div class="lh"><span class="ico">✓</span>safe</div><div class="lg">0 approvals · merges once checks are green</div><span class="cnt">0</span><div class="stack"></div></div>
+              <div class="lane risky" data-t="risky"><div class="lh"><span class="ico">!</span>risky</div><div class="lg">1 approval · review the shape, try it on stage</div><span class="cnt">0</span><div class="stack"></div></div>
+              <div class="lane very-risky" data-t="very-risky"><div class="lh"><span class="ico">‼</span>very-risky</div><div class="lg">1 approval · in-depth review, implementation too</div><span class="cnt">0</span><div class="stack"></div></div>
+            </div>
+          </div>
+          <div class="note">example policy from the README · illustrative PRs</div>
+        </div>
+      </section>
+
+      <!-- 3 · Critics -->
+      <section class="slide tool" data-title="Critics" data-anim="critics">
+        <div class="tt">
+          <span class="kicker in" style="--d:.1s">Tools · 03</span>
+          <h2 class="in" style="--d:.15s">Critics</h2>
+          <p class="lead in" style="--d:.25s">Skeptical reviewer agents. Their job is to challenge the work hard, not approve it politely — approval should feel earned.</p>
+          <ul class="in" style="--d:.35s">
+            <li><b>plan-critic</b> — challenges the plan before leaving plan mode: simplicity first, unchecked assumptions, edge cases, scope, testability.</li>
+            <li><b>solution-critic</b> — challenges the finished change before it's called done: reads the real diff, test quality, loose ends, complexity smells.</li>
+            <li>Re-invoked after every revision until the verdict is <code>approved</code>. The verdict is JSON, so tooling can parse it.</li>
+          </ul>
+          <div class="links in" style="--d:.45s">
+            <a class="lnk" href="https://github.com/kondfox/ai-utils/blob/main/agents/plan-critic/plan-critic.md" target="_blank" rel="noopener">
+              <div class="qr" data-qr="https://github.com/kondfox/ai-utils/blob/main/agents/plan-critic/plan-critic.md"></div>
+              <div><b>plan-critic</b><span>github.com/kondfox/ai-utils/…/plan-critic.md</span></div>
+            </a>
+            <a class="lnk" href="https://github.com/kondfox/ai-utils/blob/main/agents/solution-critic/solution-critic.md" target="_blank" rel="noopener">
+              <div class="qr" data-qr="https://github.com/kondfox/ai-utils/blob/main/agents/solution-critic/solution-critic.md"></div>
+              <div><b>solution-critic</b><span>github.com/kondfox/ai-utils/…/solution-critic.md</span></div>
+            </a>
+          </div>
+        </div>
+        <div class="viz in" style="--d:.2s" id="vizCritics">
+          <div class="cr"></div>
+          <div class="note">concerns taken from the critics' checklists · illustrative run</div>
+        </div>
+      </section>
+
+      <!-- 4 · Credential broker -->
+      <section class="slide tool" data-title="Credential broker" data-anim="broker">
+        <div class="tt">
+          <span class="kicker in" style="--d:.1s">Tools · 04</span>
+          <h2 class="in" style="--d:.15s">Credential broker</h2>
+          <p class="lead in" style="--d:.25s">Agents get access, never secrets.</p>
+          <ul class="in" style="--d:.35s">
+            <li>The agent asks the broker for <b>a specific permission</b> instead of reading a secret.</li>
+            <li>The broker checks policy and issues a <b>short-lived, narrowly scoped credential</b>. The long-lived secret never leaves the vault.</li>
+            <li>Credentials <b>expire on their own</b>; every grant and every denial is <b>logged</b>.</li>
+          </ul>
+        </div>
+        <div class="viz in" style="--d:.2s" id="vizBroker">
+          <div class="cb"></div>
+          <div class="note">illustrative flow</div>
+        </div>
+      </section>
+
+      <!-- 5 · Project metrics -->
+      <section class="slide tool" data-title="Project metrics" data-anim="metrics">
+        <div class="tt">
+          <span class="kicker in" style="--d:.1s">Tools · 05</span>
+          <h2 class="in" style="--d:.15s">Project metrics</h2>
+          <p class="lead in" style="--d:.25s">How a project is really going — over time, not as a snapshot.</p>
+          <ul class="in" style="--d:.35s">
+            <li>Four measures on one timeline: <b>velocity, quality, security, AI usage.</b></li>
+            <li>Separate charts on a shared time axis — hover a sprint to compare it across all four.</li>
+            <li>Shows whether AI-assisted delivery speeds things up <b>without trading away quality or security.</b></li>
+          </ul>
+        </div>
+        <div class="viz in" style="--d:.2s" id="vizMetrics">
+          <div class="dash"></div>
+          <div class="note">illustrative data</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+<script src="../assets/qrcode.min.js"></script>
+<script>
+/* ---------- shared helpers ---------- */
+document.querySelectorAll('[data-qr]').forEach(el => {
+  const q = qrcode(0, 'M'); q.addData(el.dataset.qr); q.make();
+  el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+});
+document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => deck.go(Number(b.dataset.go))));
+const rnd = (a, b) => a + Math.random() * (b - a);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const ANIMS = {};   // name → { start(), stop() } ; started on slideenter, stopped on slideleave
+
+/* =====================================================================
+   1 · LLM Wiki — an Obsidian-style graph that grows page by page
+   ===================================================================== */
+ANIMS.wiki = (() => {
+  const box = document.getElementById('vizWiki'), cv = box.querySelector('canvas'), ctx = cv.getContext('2d');
+  const W = 960, H = 764, DPR = 2;
+  cv.width = W * DPR; cv.height = H * DPR; ctx.scale(DPR, DPR);
+  const GROUPS = {
+    hub: ['#e6e8ef', 'index & hubs'], apps: ['#3987e5', 'apps'], features: ['#9085e9', 'features'], workflows: ['#199e70', 'workflows'],
+    runbooks: ['#d95926', 'runbooks'], integrations: ['#c98500', 'integrations'], decisions: ['#d55181', 'decisions'], bugs: ['#e66767', 'bugs'],
+    debt: ['#8a90a2', 'tech-debt & hacks'],
+  };
+  box.querySelector('.wiki-legend').innerHTML = Object.values(GROUPS).map(([c, n]) => `<span><i style="background:${c}"></i>${n}</span>`).join('');
+  const P = {   // folder → pages (illustrative names, the taxonomy is the seed's default)
+    apps: ['web-app', 'admin-panel', 'worker'],
+    features: ['checkout-flow', 'search', 'notifications', 'onboarding', 'reporting'],
+    workflows: ['dev-setup', 'release', 'debugging'],
+    runbooks: ['db-failover', 'queue-backlog', 'cache-flush'],
+    integrations: ['payment-gateway', 'crm-sync', 'email-provider'],
+    decisions: ['2026-03-02-event-sourcing', '2026-05-14-monorepo', '2026-08-20-feature-flags', '2026-09-30-postgres-16'],
+    bugs: ['2026-04-11-double-charge', '2026-07-03-timezone-drift', '2026-10-02-stale-cache'],
+    debt: ['legacy-auth', 'n-plus-one-orders', 'retry-wrapper', 'cors-proxy'],
+  };
+  const nodes = [], edges = [], byName = {};
+  const add = (name, g, parent) => { const n = { name, g, parent, x: 0, y: 0, vx: 0, vy: 0, deg: 0, born: -1 }; byName[name] = n; nodes.push(n); if (parent) link(parent, name); return n; };
+  const link = (a, b) => edges.push({ a: byName[a] ? a : a, b, born: -1 });
+  add('index', 'hub');
+  ['architecture', 'glossary', 'faq', '_log', 'CLAUDE.md (schema)'].forEach(h => add(h, 'hub', 'index'));
+  Object.entries(P).forEach(([f, pages]) => {
+    const fi = (f === 'debt' ? 'tech-debt' : f) + '/_index';
+    add(fi, f, 'index');
+    pages.forEach(p => add(p, f, fi));
+  });
+  [['architecture', 'web-app'], ['architecture', 'worker'], ['architecture', 'payment-gateway'], ['architecture', '2026-03-02-event-sourcing'],
+   ['glossary', 'checkout-flow'], ['glossary', 'reporting'], ['glossary', 'crm-sync'], ['glossary', 'onboarding'],
+   ['checkout-flow', 'payment-gateway'], ['checkout-flow', '2026-04-11-double-charge'], ['2026-04-11-double-charge', 'retry-wrapper'],
+   ['2026-04-11-double-charge', 'db-failover'], ['2026-07-03-timezone-drift', 'reporting'], ['2026-10-02-stale-cache', 'cache-flush'],
+   ['2026-10-02-stale-cache', 'search'], ['2026-08-20-feature-flags', 'release'], ['2026-08-20-feature-flags', 'onboarding'],
+   ['2026-05-14-monorepo', 'dev-setup'], ['2026-09-30-postgres-16', 'db-failover'], ['legacy-auth', 'admin-panel'],
+   ['n-plus-one-orders', 'reporting'], ['cors-proxy', 'web-app'], ['notifications', 'email-provider'], ['queue-backlog', 'worker'],
+   ['_log', '2026-10-02-stale-cache'], ['_log', '2026-09-30-postgres-16'], ['faq', 'debugging'], ['faq', 'dev-setup'],
+   ['crm-sync', 'worker'], ['debugging', 'queue-backlog']].forEach(([a, b]) => link(a, b));
+  edges.forEach(e => { byName[e.a].deg++; byName[e.b].deg++; });
+
+  let t0 = 0, raf = 0, hover = null, running = false;
+  const order = [...nodes];   // creation order: hubs, then folder by folder (as the seed bootstraps)
+  function reset() {
+    nodes.forEach(n => { n.born = -1; n.x = W / 2 + rnd(-5, 5); n.y = H / 2 + rnd(-5, 5); n.vx = n.vy = 0; });
+    edges.forEach(e => e.born = -1);
+  }
+  const rad = n => 3.2 + Math.sqrt(n.deg) * 2.1;
+  function step(now) {
+    const t = (now - t0) / 1000;
+    // birth schedule: one page every 110ms after .5s
+    order.forEach((n, i) => {
+      if (n.born < 0 && t > .5 + i * .11) {
+        n.born = t;
+        const p = n.parent && byName[n.parent];
+        if (p) { n.x = p.x + rnd(-12, 12); n.y = p.y + rnd(-12, 12); }
+      }
+    });
+    edges.forEach(e => { if (e.born < 0 && byName[e.a].born >= 0 && byName[e.b].born >= 0) e.born = t; });
+    const live = nodes.filter(n => n.born >= 0);
+    // forces
+    for (let i = 0; i < live.length; i++) for (let j = i + 1; j < live.length; j++) {
+      const a = live[i], b = live[j]; let dx = b.x - a.x, dy = b.y - a.y; let d2 = dx * dx + dy * dy + .01;
+      if (d2 > 160000) continue;
+      const f = Math.min(2200 / d2, 1.6), d = Math.sqrt(d2); dx /= d; dy /= d;
+      a.vx -= dx * f; a.vy -= dy * f; b.vx += dx * f; b.vy += dy * f;
+    }
+    edges.forEach(e => {
+      if (e.born < 0) return;
+      const a = byName[e.a], b = byName[e.b]; const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
+      const L = (a.g === 'hub' && b.g === 'hub') ? 105 : 72, k = (d - L) * .012;
+      a.vx += dx / d * k; a.vy += dy / d * k; b.vx -= dx / d * k; b.vy -= dy / d * k;
+    });
+    live.forEach(n => {
+      n.vx += (W / 2 - n.x) * .0016; n.vy += (H / 2 + 20 - n.y) * .0024;
+      n.vx += Math.sin(t * .6 + n.x * .01) * .006; n.vy += Math.cos(t * .5 + n.y * .01) * .006;   // gentle drift
+      n.vx *= .84; n.vy *= .84; n.x += n.vx; n.y += n.vy;
+      n.x = Math.max(40, Math.min(W - 40, n.x)); n.y = Math.max(70, Math.min(H - 50, n.y));   // stay inside the frame
+    });
+    draw(t, live);
+    if (running) raf = requestAnimationFrame(step);
+  }
+  function draw(t, live) {
+    ctx.clearRect(0, 0, W, H);
+    const nb = new Set();
+    if (hover) { nb.add(hover.name); edges.forEach(e => { if (e.a === hover.name) nb.add(e.b); if (e.b === hover.name) nb.add(e.a); }); }
+    edges.forEach(e => {
+      if (e.born < 0) return;
+      const a = byName[e.a], b = byName[e.b], f = Math.min(1, (t - e.born) / .5);
+      const on = hover && (e.a === hover.name || e.b === hover.name);
+      ctx.strokeStyle = on ? 'rgba(168,130,255,.85)' : `rgba(200,205,220,${(hover ? .06 : .16) * f})`;
+      ctx.lineWidth = on ? 1.6 : 1;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f); ctx.stroke();
+    });
+    live.forEach(n => {
+      const age = t - n.born, s = Math.min(1, age / .35), r = rad(n) * (s < 1 ? .4 + .6 * s + Math.sin(s * Math.PI) * .5 : 1);
+      const dim = hover && !nb.has(n.name);
+      if (age < 1) { ctx.strokeStyle = `rgba(168,130,255,${(1 - age) * .7})`; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(n.x, n.y, r + age * 26, 0, 7); ctx.stroke(); }
+      ctx.globalAlpha = dim ? .18 : 1;
+      ctx.fillStyle = hover === n ? '#a882ff' : GROUPS[n.g][0];
+      ctx.beginPath(); ctx.arc(n.x, n.y, r, 0, 7); ctx.fill();
+      const showLabel = (n.deg >= 4 && !hover) || (hover && nb.has(n.name));
+      if (showLabel) {
+        ctx.font = `${hover === n ? 600 : 500} 12px Inter, system-ui`; ctx.textAlign = 'center';
+        ctx.fillStyle = hover === n ? '#fff' : 'rgba(220,224,235,.75)';
+        ctx.fillText(n.name, n.x, n.y + r + 14);
+      }
+      ctx.globalAlpha = 1;
+    });
+  }
+  cv.addEventListener('pointermove', e => {
+    const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
+    hover = nodes.filter(n => n.born >= 0).find(n => Math.hypot(n.x - x, n.y - y) < rad(n) + 6) || null;
+    cv.style.cursor = hover ? 'pointer' : '';
+  });
+  cv.addEventListener('pointerleave', () => hover = null);
+  return {
+    start() { reset(); running = true; t0 = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(step); },
+    stop() { running = false; cancelAnimationFrame(raf); },
+  };
+})();
+
+/* =====================================================================
+   2 · Merge Risk — PRs pass through the CI step and get sorted by tier
+   ===================================================================== */
+ANIMS.merge = (() => {
+  const root = document.getElementById('vizMerge');
+  const queue = root.querySelector('.queue'), ci = root.querySelector('.ci'), cur = ci.querySelector('.cur'), files = ci.querySelector('.files'), verdict = ci.querySelector('.verdict');
+  const lanes = Object.fromEntries([...root.querySelectorAll('.lane')].map(l => [l.dataset.t, l]));
+  const RANK = { safe: 0, risky: 1, 'very-risky': 2 }, NAMES = ['safe', 'risky', 'very-risky'];
+  // illustrative PRs scored against the README's example policy
+  const PRS = [
+    { no: 481, t: 'docs: clarify setup guide', f: [['docs/setup.md', 'safe', 'zone docs/**'], ['README.md', 'safe', 'zone **/*.md']] },
+    { no: 482, t: 'feat: retry failed payments', f: [['src/payments/retry.ts', 'risky', 'zone src/**'], ['src/payments/retry.test.ts', 'risky', 'zone src/**']] },
+    { no: 483, t: 'chore: drop legacy orders table', f: [['src/migrations/0042_orders.sql', 'very-risky', 'zone src/migrations/** · adds DROP']] },
+    { no: 484, t: 'docs: 40 pages + 1 infra file', f: [['docs/** (40 files)', 'safe', 'zone docs/**'], ['infrastructure/main.tf', 'very-risky', 'zone infrastructure/**']] },
+    { no: 485, t: 'fix: typo in FAQ', f: [['docs/faq.md', 'safe', 'zone docs/**']] },
+    { no: 486, t: 'feat: reporting widget', f: [['src/ui/report-widget.tsx', 'risky', 'zone src/**'], ['712 lines changed', 'very-risky', 'size > 600 → +1 tier']] },
+    { no: 487, t: 'ci: cache dependencies', f: [['.github/workflows/ci.yml', 'very-risky', 'zone .github/workflows/**']] },
+  ];
+  let runId = 0;
+  const chip = t => `<span class="chip t-${t}">${t}</span>`;
+  async function run() {
+    const id = ++runId, alive = () => id === runId;
+    queue.innerHTML = ''; files.innerHTML = ''; cur.innerHTML = ''; verdict.classList.remove('on');
+    Object.values(lanes).forEach(l => { l.querySelector('.stack').innerHTML = ''; l.querySelector('.cnt').textContent = '0'; });
+    const cards = PRS.map((p, i) => {
+      const c = document.createElement('div'); c.className = 'pr';
+      c.innerHTML = `<div class="no">#${p.no}</div><div class="tl">${p.t}</div>`;
+      c.style.top = (i * 74) + 'px';
+      queue.appendChild(c);
+      c.animate([{ opacity: 0, transform: 'translateX(-30px)' }, { opacity: 1, transform: 'none' }], { duration: 500, delay: i * 70, fill: 'backwards', easing: 'ease-out' });
+      return c;
+    });
+    await wait(900);
+    const counts = { safe: 0, risky: 0, 'very-risky': 0 };
+    for (let i = 0; i < PRS.length && alive(); i++) {
+      const p = PRS[i], c = cards[i];
+      // card slides into the CI step
+      await c.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateX(290px) scale(.9)', opacity: 0 }], { duration: 450, easing: 'ease-in', fill: 'forwards' }).finished;
+      cards.slice(i + 1).forEach(n => n.animate([{ transform: 'none' }, { transform: 'translateY(-74px)' }], { duration: 400, easing: 'ease-out', fill: 'forwards' }).finished.then(() => {
+        n.getAnimations().forEach(a => a.cancel()); n.style.top = (parseFloat(n.style.top) - 74) + 'px'; }));
+      if (!alive()) return;
+      ci.classList.add('busy');
+      cur.innerHTML = `<div class="no" style="font-family:var(--mono);font-size:12px;color:var(--muted)">#${p.no}</div><div class="tl">${p.t}</div>`;
+      files.innerHTML = ''; verdict.classList.remove('on');
+      let worst = 'safe';
+      for (const [path, tier, why] of p.f) {
+        const r = document.createElement('div'); r.className = 'frow';
+        r.innerHTML = `<span class="p">${path}</span>${chip(tier)}<span class="why">${why}</span>`;
+        files.appendChild(r); await wait(40); r.classList.add('on');
+        if (RANK[tier] > RANK[worst]) worst = tier;
+        await wait(650); if (!alive()) return;
+      }
+      verdict.innerHTML = `PR tier: ${chip(worst)}<small>${p.f.length > 1 ? 'the riskiest file decides — never averaged' : 'label · comment · commit status'}</small>`;
+      verdict.classList.add('on'); ci.classList.remove('busy');
+      await wait(900); if (!alive()) return;
+      // drop a mini card into the tier lane
+      const lane = lanes[worst], stack = lane.querySelector('.stack');
+      const m = document.createElement('div'); m.className = 'mini';
+      m.innerHTML = `#${p.no} ${chip('merge-risk:' + worst).replace('t-merge-risk:' + worst, 't-' + worst)}`;
+      stack.appendChild(m);
+      m.animate([{ opacity: 0, transform: 'translate(-120px,-40px) scale(.8)' }, { opacity: 1, transform: 'none' }], { duration: 550, easing: 'cubic-bezier(.2,1.3,.4,1)' });
+      counts[worst]++; lane.querySelector('.cnt').textContent = counts[worst];
+      lane.animate([{ background: 'rgba(255,255,255,.09)' }, { background: 'rgba(255,255,255,.025)' }], { duration: 700 });
+      await wait(350);
+    }
+    if (!alive()) return;
+    cur.innerHTML = '<span style="color:var(--muted)">queue empty — waiting for the next push</span>'; files.innerHTML = ''; verdict.classList.remove('on');
+    await wait(3500); if (alive()) run();
+  }
+  return { start: run, stop() { runId++; } };
+})();
+
+/* =====================================================================
+   3 · Critics — plan → plan-critic loop → implement → solution-critic loop → done
+   ===================================================================== */
+ANIMS.critics = (() => {
+  const root = document.querySelector('#vizCritics .cr');
+  const X = { plan: 90, pc: 300, impl: 520, sc: 720, done: 880 };
+  root.innerHTML = `
+    <div class="track"></div>
+    <div class="st" style="left:${X.plan}px"><div class="dot">📝</div><div class="lb">plan</div></div>
+    <div class="st gate" data-g="pc" style="left:${X.pc}px"><div class="dot">🧐</div><div class="lb">plan-critic</div></div>
+    <div class="st" style="left:${X.impl}px"><div class="dot">⌨️</div><div class="lb">implement</div></div>
+    <div class="st gate" data-g="sc" style="left:${X.sc}px"><div class="dot">🧐</div><div class="lb">solution-critic</div></div>
+    <div class="st" style="left:${X.done}px"><div class="dot">✅</div><div class="lb">done</div></div>
+    <div class="round"></div><div class="beam"></div>
+    <div class="doc"><span class="rev"></span><div class="h"></div><div class="lines"></div><div class="scan"></div><div class="stamp"></div></div>
+    <div class="concerns"></div>
+    <div class="json"><span class="cap">LAST VERDICT · JSON</span><span class="body">—</span></div>`;
+  const doc = root.querySelector('.doc'), stamp = doc.querySelector('.stamp'), scan = doc.querySelector('.scan'), rev = doc.querySelector('.rev');
+  const beam = root.querySelector('.beam'), concerns = root.querySelector('.concerns'), round = root.querySelector('.round'), json = root.querySelector('.json .body');
+  const gates = Object.fromEntries([...root.querySelectorAll('.gate')].map(g => [g.dataset.g, g]));
+  const ROUNDS = {
+    pc: [
+      ['Is this the simplest solution? An existing utility already does half of it.', 'Unchecked assumption — verify the claim against the files.', 'One PR or three pretending to be one?'],
+      ['Edge case: what happens when the happy path doesn\'t hold?'],
+      [],
+    ],
+    sc: [
+      ['retry.test.ts asserts the mock was called, not the returned value.', 'Leftover console.log in retry.ts.', '6 parameters — take an options object.'],
+      [],
+    ],
+  };
+  let runId = 0;
+  const move = (x, ms = 700) => doc.animate([{ left: doc.style.left }, { left: x + 'px' }], { duration: ms, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' }).finished.then(() => { doc.style.left = x + 'px'; doc.getAnimations().forEach(a => a.cancel()); });
+  function setDoc(kind, r) {
+    doc.classList.toggle('code', kind === 'code');
+    doc.querySelector('.h').textContent = kind === 'code' ? 'DIFF' : 'PLAN.md';
+    const L = kind === 'code' ? ['add', '', 'del', 'add', 'add', '', 'add', 'del', ''] : ['', '', '', '', '', '', '', '', ''];
+    doc.querySelector('.lines').innerHTML = L.map((c, i) => `<div class="ln ${c}" style="width:${[92, 70, 84, 60, 88, 76, 66, 90, 54][i]}%"></div>`).join('');
+    rev.textContent = 'rev ' + r;
+  }
+  const esc = s => s.replace(/"/g, '\\"');
+  function showJson(v, cs) {
+    const body = cs.length ? '[\n    ' + cs.map(c => `<span class="w">"${esc(c)}"</span>`).join(',\n    ') + '\n  ]' : '[]';
+    json.innerHTML = `{ <span class="k">"verdict"</span>: <span class="${v === 'approved' ? 's' : 'w'}">"${v}"</span>,\n  <span class="k">"concerns"</span>: ${body},\n  <span class="k">"questions"</span>: [] }`;
+  }
+  async function gate(g, kind, alive) {
+    const rounds = ROUNDS[g], x = X[g], home = g === 'pc' ? X.plan : X.impl;
+    for (let r = 0; r < rounds.length; r++) {
+      round.style.left = x + 'px'; round.textContent = `round ${r + 1}`;
+      gates[g].classList.add('active');
+      stamp.style.opacity = 0; concerns.innerHTML = '';
+      await move(x); if (!alive()) return false;
+      beam.style.left = x + 'px'; beam.animate([{ opacity: 0 }, { opacity: 1 }, { opacity: 1 }, { opacity: 0 }], { duration: 1300 });
+      await scan.animate([{ top: '-30px' }, { top: '150px' }, { top: '-30px' }, { top: '150px' }], { duration: 1300, easing: 'ease-in-out' }).finished; if (!alive()) return false;
+      const cs = rounds[r], ok = !cs.length;
+      stamp.className = 'stamp ' + (ok ? 'yes' : 'no'); stamp.textContent = ok ? 'APPROVED' : 'NEEDS_REVISION';
+      stamp.animate([{ opacity: 0, transform: 'scale(1.8)' }, { opacity: 1, transform: 'scale(1)' }], { duration: 300, easing: 'ease-out', fill: 'forwards' });
+      showJson(ok ? 'approved' : 'needs_revision', cs);
+      concerns.style.left = (x > 600 ? x - 90 - 330 : x + 90) + 'px';
+      cs.forEach((c, i) => {
+        const el = document.createElement('div'); el.className = 'cc'; el.textContent = c; concerns.appendChild(el);
+        el.animate([{ opacity: 0, transform: 'translateY(-14px) scale(.95)' }, { opacity: 1, transform: 'none' }], { duration: 450, delay: 150 + i * 220, easing: 'cubic-bezier(.2,1.3,.4,1)', fill: 'backwards' });
+      });
+      await wait(ok ? 1300 : 2600 + cs.length * 200); if (!alive()) return false;
+      gates[g].classList.remove('active');
+      if (ok) { concerns.innerHTML = ''; return true; }
+      // back for revision
+      concerns.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }).finished.then(() => { concerns.innerHTML = ''; concerns.getAnimations().forEach(a => a.cancel()); });
+      stamp.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' });
+      await move(home, 650); if (!alive()) return false;
+      doc.querySelectorAll('.ln').forEach((l, i) => l.animate([{ opacity: 1 }, { opacity: .2 }, { opacity: 1 }], { duration: 500, delay: i * 50 }));
+      setDoc(kind, r + 2);
+      await wait(800); if (!alive()) return false;
+    }
+    return true;
+  }
+  async function run() {
+    const id = ++runId, alive = () => id === runId;
+    doc.getAnimations().forEach(a => a.cancel());
+    doc.style.left = X.plan + 'px'; setDoc('plan', 1); stamp.style.opacity = 0; concerns.innerHTML = ''; json.textContent = '—'; round.textContent = '';
+    doc.animate([{ opacity: 0, transform: 'scale(.6)' }, { opacity: 1, transform: 'none' }], { duration: 500, easing: 'ease-out' });
+    await wait(900); if (!alive()) return;
+    if (!await gate('pc', 'plan', alive)) return;
+    round.textContent = '';
+    await move(X.impl); if (!alive()) return;
+    stamp.style.opacity = 0;
+    doc.animate([{ transform: 'rotateY(0)' }, { transform: 'rotateY(90deg)' }, { transform: 'rotateY(0)' }], { duration: 600 });
+    await wait(300); setDoc('code', 1); await wait(900); if (!alive()) return;
+    if (!await gate('sc', 'code', alive)) return;
+    round.textContent = '';
+    await move(X.done); if (!alive()) return;
+    await wait(3200); if (alive()) run();
+  }
+  return { start: run, stop() { runId++; } };
+})();
+
+/* =====================================================================
+   4 · Credential broker — request → policy → short-lived token → use → expire; and a denial
+   ===================================================================== */
+ANIMS.broker = (() => {
+  const root = document.querySelector('#vizBroker .cb');
+  const A = { x: 140, y: 390 }, B = { x: 480, y: 390 }, S = { x: 820, y: 390 };
+  const LANE_B = -150, LANE_S = -215;   // message lanes above the boxes: agent↔broker, agent↔service
+  root.innerHTML = `
+    <svg class="wires"><line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="rgba(255,255,255,.12)" stroke-width="2" stroke-dasharray="5 6"/>
+      <line x1="${A.x}" y1="${A.y + 6}" x2="${S.x}" y2="${S.y + 6}" stroke="rgba(255,255,255,.0)"/>
+      <line x1="${B.x}" y1="${B.y}" x2="${B.x}" y2="${B.y + 112}" stroke="rgba(255,255,255,.12)" stroke-width="2" stroke-dasharray="5 6"/></svg>
+    <div class="policy"><div class="t">POLICY</div>
+      <div class="rule" data-r="ok"><span>coder-agent → orders-db : read</span><span>allow</span></div>
+      <div class="rule" data-r="no"><span>coder-agent → prod secrets</span><span>deny</span></div></div>
+    <div class="node" style="left:${A.x}px;top:${A.y}px"><div class="bx">🤖</div><div class="nm">Agent</div><div class="sb">coder-agent</div></div>
+    <div class="node broker" style="left:${B.x}px;top:${B.y}px"><div class="bx">🛡️</div><div class="nm">Credential broker</div><div class="sb">policy · mint · audit</div></div>
+    <div class="node" style="left:${S.x}px;top:${S.y}px"><div class="bx">🗄️</div><div class="nm">orders-db</div><div class="sb">a real service</div></div>
+    <div class="vault" style="left:${B.x}px;top:${B.y + 112}px"><div class="lk">🔒 vault — never leaves</div><div class="s">long-lived secret ••••••••</div></div>
+    <div class="held" style="left:${A.x}px;top:${A.y + 102}px"><span class="ttl"></span><span class="tx"></span></div>
+    <div class="log"><span class="cap">AUDIT LOG</span></div>`;
+  const held = root.querySelector('.held'), ttl = held.querySelector('.ttl'), htx = held.querySelector('.tx'), log = root.querySelector('.log');
+  const rules = { ok: root.querySelector('[data-r="ok"]'), no: root.querySelector('[data-r="no"]') };
+  const vault = root.querySelector('.vault');
+  let runId = 0, clock = 0;
+  const ts = () => { clock += 7; const s = 1 * 3600 * 10 + 42 * 60 + clock; return `10:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+  function addLog(html) {
+    const d = document.createElement('div'); d.innerHTML = `<span style="color:var(--faint)">${ts()}</span>  ${html}`; log.appendChild(d);
+    while (log.children.length > 6) log.children[1].remove();
+    d.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 300 });
+  }
+  async function fly(text, cls, from, to, ms = 900, dy = LANE_B) {
+    const m = document.createElement('div'); m.className = 'msg ' + (cls || ''); m.textContent = text; root.appendChild(m);
+    await m.animate([{ left: from.x + 'px', top: (from.y + dy) + 'px', opacity: 0 }, { opacity: 1, offset: .15 }, { left: to.x + 'px', top: (to.y + dy) + 'px', opacity: 1 }],
+      { duration: ms, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' }).finished;
+    return m;
+  }
+  const fade = m => m.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 300, fill: 'forwards' }).finished.then(() => m.remove());
+  async function run() {
+    const id = ++runId, alive = () => id === runId;
+    root.querySelectorAll('.msg').forEach(m => m.remove()); held.classList.remove('on');
+    [...log.children].slice(1).forEach(c => c.remove()); clock = 0;
+    await wait(700); if (!alive()) return;
+    // 1. ask for a specific permission
+    let m = await fly('read · orders-db', '', A, B); if (!alive()) return;
+    // 2. policy check
+    rules.ok.classList.add('hit-ok'); await wait(700); rules.ok.classList.remove('hit-ok'); fade(m);
+    // 3. the vault's secret is used inside the broker to mint a scoped token
+    vault.animate([{ boxShadow: '0 0 0 0 rgba(124,243,208,0)' }, { boxShadow: '0 0 0 6px rgba(124,243,208,.25)' }, { boxShadow: '0 0 0 0 rgba(124,243,208,0)' }], { duration: 900 });
+    await wait(700); if (!alive()) return;
+    addLog('<span class="g">GRANT</span> coder-agent read:orders-db · ttl 15 min');
+    m = await fly('token · read:orders-db · 15 min', 'token', B, A, 950); if (!alive()) return;
+    fade(m); held.classList.add('on'); htx.textContent = 'read:orders-db'; ttl.style.setProperty('--p', 1);
+    // 4. use it
+    for (let k = 0; k < 2; k++) {
+      m = await fly('SELECT … (token)', '', A, S, 1100, LANE_S); if (!alive()) return; fade(m);
+      m = await fly('200 OK', 'ok', S, A, 800, LANE_S); if (!alive()) return; fade(m);
+    }
+    // 5. it expires on its own
+    const tStart = performance.now();
+    await new Promise(res => { const tick = () => { const p = 1 - (performance.now() - tStart) / 1800; ttl.style.setProperty('--p', Math.max(0, p)); if (p > 0 && alive()) requestAnimationFrame(tick); else res(); }; tick(); });
+    if (!alive()) return;
+    htx.textContent = 'expired'; addLog('<span class="y">EXPIRED</span> coder-agent read:orders-db');
+    await wait(600); held.classList.remove('on');
+    m = await fly('SELECT … (old token)', '', A, S, 1000, LANE_S); if (!alive()) return; fade(m);
+    m = await fly('401 expired', 'no', S, A, 800, LANE_S); if (!alive()) return; fade(m);
+    await wait(500); if (!alive()) return;
+    // 6. asking for too much is denied — and logged
+    m = await fly('read · prod secrets', '', A, B); if (!alive()) return;
+    rules.no.classList.add('hit-no'); await wait(800); rules.no.classList.remove('hit-no'); fade(m);
+    addLog('<span class="r">DENY</span>  coder-agent prod-secrets · not in policy');
+    m = await fly('denied', 'no', B, A, 800); if (!alive()) return; fade(m);
+    await wait(3000); if (alive()) run();
+  }
+  return { start: run, stop() { runId++; } };
+})();
+
+/* =====================================================================
+   5 · Project metrics — small multiples on a shared sprint axis
+   ===================================================================== */
+ANIMS.metrics = (() => {
+  const dash = document.querySelector('#vizMetrics .dash');
+  const SPR = Array.from({ length: 12 }, (_, i) => 'S' + (i + 1));
+  const M = [   // illustrative data
+    { k: 'vel',  name: 'Velocity',  unit: 'story points per sprint', c: 'var(--c-vel)',  d: [21, 24, 23, 27, 29, 31, 30, 34, 37, 36, 40, 43], fmt: v => v, better: 'up' },
+    { k: 'qual', name: 'Quality',   unit: 'escaped defects per sprint', c: 'var(--c-qual)', d: [9, 8, 8, 7, 6, 6, 5, 5, 4, 4, 3, 3], fmt: v => v, better: 'down' },
+    { k: 'sec',  name: 'Security',  unit: 'open vulnerabilities', c: 'var(--c-sec)', d: [14, 13, 13, 11, 10, 8, 8, 7, 5, 4, 4, 3], fmt: v => v, better: 'down' },
+    { k: 'ai',   name: 'AI usage',  unit: 'share of PRs AI-assisted', c: 'var(--c-ai)', d: [12, 18, 22, 30, 38, 45, 52, 58, 64, 70, 74, 78], fmt: v => v + '%', better: 'up' },
+  ];
+  const VW = 420, VH = 190, PL = 30, PR = 10, PT = 10, PB = 22;
+  const xs = i => PL + i * (VW - PL - PR) / (SPR.length - 1);
+  dash.innerHTML = M.map(m => {
+    const max = Math.ceil(Math.max(...m.d) * 1.15 / 5) * 5, ys = v => PT + (1 - v / max) * (VH - PT - PB);
+    const pts = m.d.map((v, i) => `${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+    const area = `M${xs(0)},${ys(0) + (VH - PT - PB) - (VH - PT - PB)} ` ;
+    const grid = [0, .5, 1].map(f => { const v = Math.round(max * f), y = ys(v); return `<line class="grid" x1="${PL}" x2="${VW - PR}" y1="${y}" y2="${y}"/><text class="axis" x="${PL - 6}" y="${y + 3}" text-anchor="end">${m.fmt(v)}</text>`; }).join('');
+    const xl = SPR.map((s, i) => i % 2 === 0 || i === SPR.length - 1 ? `<text class="axis" x="${xs(i)}" y="${VH - 6}" text-anchor="middle">${s}</text>` : '').join('');
+    const areaPath = `M${xs(0)},${VH - PB} L` + m.d.map((v, i) => `${xs(i)},${ys(v)}`).join(' L') + ` L${xs(m.d.length - 1)},${VH - PB} Z`;
+    return `<div class="panel" data-k="${m.k}">
+      <div class="ph"><div><div class="pt"><i style="background:${m.c}"></i>${m.name}</div><div class="pu">${m.unit}</div></div>
+        <div><div class="pv" data-v>0</div><div class="pd" data-dl></div></div></div>
+      <svg viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none">
+        <defs><linearGradient id="g-${m.k}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--c-' + m.k).trim()}" stop-opacity=".28"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient></defs>
+        ${grid}${xl}
+        <path class="area" d="${areaPath}" fill="url(#g-${m.k})" opacity="0"/>
+        <polyline class="line" points="${pts}" style="stroke:${m.c}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/>
+        <circle class="end" r="4.5" cx="${xs(m.d.length - 1)}" cy="${ys(m.d[m.d.length - 1])}" style="fill:${m.c}" opacity="0"/>
+        <line class="xh" y1="${PT}" y2="${VH - PB}"/>
+        <circle class="hdot" r="5" style="fill:${m.c}"/>
+        <rect class="hit" x="${PL}" y="0" width="${VW - PL - PR}" height="${VH}" fill="transparent"/>
+      </svg></div>`;
+  }).join('') + '<div class="tip"></div>';
+  const panels = [...dash.querySelectorAll('.panel')], tip = dash.querySelector('.tip');
+  let runId = 0;
+  function run() {
+    const id = ++runId;
+    panels.forEach((p, k) => {
+      const m = M[k], line = p.querySelector('.line'), area = p.querySelector('.area'), end = p.querySelector('.end');
+      [line, area, end].forEach(e => e.getAnimations().forEach(a => a.cancel()));
+      const delay = 300 + k * 250;
+      line.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: 2200, delay, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
+      area.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, delay: delay + 1400, fill: 'forwards' });
+      end.animate([{ opacity: 0, r: 0 }, { opacity: 1, r: 4.5 }], { duration: 400, delay: delay + 2150, fill: 'forwards' });
+      // KPI count-up and delta
+      const v = p.querySelector('[data-v]'), dl = p.querySelector('[data-dl]'), last = m.d.at(-1), first = m.d[0];
+      const t0 = performance.now() + delay;
+      const tick = now => { if (id !== runId) return; const f = Math.min(1, Math.max(0, (now - t0) / 2200)); v.textContent = m.fmt(Math.round(first + (last - first) * (1 - Math.pow(1 - f, 3)))); if (f < 1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+      const ch = Math.round((last - first) / first * 100);
+      dl.textContent = `${ch > 0 ? '▲ +' : '▼ '}${ch}% since S1 · ${(m.better === 'up') === (ch > 0) ? 'better' : 'worse'}`;
+      dl.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: delay + 2200, fill: 'both' });
+    });
+  }
+  // shared crosshair + tooltip across all four panels
+  dash.addEventListener('pointermove', e => {
+    const svg = e.target.closest('svg'); if (!svg) return hide();
+    const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * VW;
+    const i = Math.max(0, Math.min(SPR.length - 1, Math.round((x - PL) / ((VW - PL - PR) / (SPR.length - 1)))));
+    panels.forEach((p, k) => {
+      const m = M[k], max = Math.ceil(Math.max(...m.d) * 1.15 / 5) * 5, y = PT + (1 - m.d[i] / max) * (VH - PT - PB);
+      const xh = p.querySelector('.xh'), hd = p.querySelector('.hdot');
+      xh.setAttribute('x1', xs(i)); xh.setAttribute('x2', xs(i)); xh.style.opacity = 1;
+      hd.setAttribute('cx', xs(i)); hd.setAttribute('cy', y); hd.style.opacity = 1;
+    });
+    const dr = dash.getBoundingClientRect(), k = dr.width / dash.offsetWidth;
+    tip.innerHTML = `<b>Sprint ${i + 1}</b>` + M.map(m => `<div><span>${m.name}</span> · ${m.fmt(m.d[i])}</div>`).join('');
+    tip.style.left = ((e.clientX - dr.left) / k + 16) + 'px'; tip.style.top = ((e.clientY - dr.top) / k - 10) + 'px'; tip.style.opacity = 1;
+  });
+  function hide() { tip.style.opacity = 0; dash.querySelectorAll('.xh,.hdot').forEach(el => el.style.opacity = 0); }
+  dash.addEventListener('pointerleave', hide);
+  return { start: run, stop() { runId++; hide(); } };
+})();
+
+/* ---------- wire animations to slides ---------- */
+document.querySelectorAll('.slide[data-anim]').forEach(s => {
+  const a = ANIMS[s.dataset.anim];
+  s.addEventListener('slideenter', () => a.start());
+  s.addEventListener('slideleave', () => a.stop());
+});
+</script>
+<script src="../assets/deck.js"></script>
+</body>
+</html>
