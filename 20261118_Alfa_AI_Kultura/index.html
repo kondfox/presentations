@@ -333,13 +333,56 @@ body.idle .chrome { opacity: 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
 }
+/* ---------- Végállapot-mód (áttekintés + PDF): nincs animáció, minden a végső helyén ---------- */
+.static, .static *, .static *::before, .static *::after { animation: none !important; transition: none !important; }
+.slide.static { opacity: 1; visibility: visible; transform: none; }
+.static .in, .static .people i, .static .sub span { opacity: 1 !important; }
+.static .floaty, .static .flip-inner { transform: none !important; }
+.static .front { display: none; }
+.static .back { transform: none !important; }
+.pagebg {
+  background:
+    radial-gradient(900px 900px at 5% -10%, rgba(111, 177, 255, .22), transparent 65%),
+    radial-gradient(800px 800px at 100% 10%, rgba(169, 146, 255, .18), transparent 65%),
+    radial-gradient(800px 700px at 45% 120%, rgba(255, 179, 92, .14), transparent 65%),
+    linear-gradient(180deg, #0a0f20, #070a16);
+}
+
+/* ---------- Áttekintés (Esc) ---------- */
+.ov { position: fixed; inset: 0; z-index: 20; display: none; flex-direction: column; padding: 26px 40px 40px; overflow: auto; cursor: default; background: rgba(6, 9, 20, .93); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.ov.open { display: flex; }
+.ov-head { display: flex; justify-content: space-between; align-items: center; gap: 24px; margin-bottom: 24px; }
+.ov-head h3 { margin: 0; font-size: 22px; font-weight: 700; }
+.ov-head p { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+.ov-head .tools { display: flex; align-items: center; gap: 14px; }
+.ov-head .hint { font-size: 13px; color: var(--muted); max-width: 250px; text-align: right; line-height: 1.35; }
+.ov-btn { font: inherit; font-size: 16px; font-weight: 700; color: #0a0f1d; background: var(--trio); border: 0; border-radius: 12px; padding: 12px 20px; cursor: pointer; white-space: nowrap; box-shadow: 0 10px 34px -12px var(--ai); transition: transform .15s; }
+.ov-btn:hover { transform: translateY(-1px); }
+.ov-btn.ghost { background: rgba(255, 255, 255, .1); color: var(--fg); box-shadow: none; }
+.ov-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 22px; }
+.thumb { all: unset; display: block; cursor: pointer; }
+.tframe { position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 12px; border: 2px solid var(--line-strong); transition: border-color .2s, box-shadow .2s, transform .2s; pointer-events: none; }
+.tscale { position: absolute; left: 0; top: 0; width: 1600px; height: 900px; transform-origin: 0 0; transform: scale(var(--ts, .2)); }
+.thumb:hover .tframe { transform: translateY(-3px); border-color: rgba(255, 255, 255, .5); }
+.thumb.sel .tframe { border-color: var(--human); box-shadow: 0 0 0 4px rgba(111, 177, 255, .35); }
+.thumb .cap { display: block; margin-top: 9px; font-size: 14px; color: var(--muted); }
+.thumb .cap b { color: var(--fg); margin-right: 6px; }
+#print { display: none; }
+/* PDF: a ragyogást (elmosott árnyék) és a színátmenetes szöveget több PDF-olvasó hibásan, tömör téglalapként rajzolja ki */
+.pdf-page *, .pdf-page *::before, .pdf-page *::after { text-shadow: none !important; box-shadow: none !important; filter: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.pdf-page .gt { background: none; -webkit-text-fill-color: currentColor; color: var(--pink); }
+.pdf-page .s1 .gt, .pdf-page .s13 .gt { color: var(--ai); }
+.pdf-page .back .main.xl span { background: none; -webkit-text-fill-color: currentColor; color: #6b4dff; }
+.pdf-page .win .mask { -webkit-mask-image: none; mask-image: none; }
+
 @media print {
   @page { size: 1600px 900px; margin: 0; }
-  html, body { height: auto; overflow: visible; }
-  .viewport { position: static; display: block; }
-  .stage { transform: none !important; height: auto; }
-  .slide { position: relative; height: 900px; opacity: 1; visibility: visible; transform: none; break-after: page; }
-  .chrome, .bar { display: none; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { height: auto; overflow: visible; background: #090d1c; }
+  body > *:not(#print) { display: none !important; }
+  #print { display: block; }
+  .pdf-page { position: relative; width: 1600px; height: 900px; overflow: hidden; break-after: page; page-break-after: always; }
+  .pdf-page:last-child { break-after: auto; page-break-after: auto; }
 }
 </style>
 </head>
@@ -626,9 +669,17 @@ body.idle .chrome { opacity: 0; }
 
 </div></div>
 
+<div class="ov" id="ov" aria-hidden="true">
+  <div class="ov-head">
+    <div><h3>AI-natív kultúra – összes dia</h3><p>Kattints egy diára az ugráshoz · Esc: vissza</p></div>
+    <div class="tools"><span class="hint">A megnyíló nyomtatási ablakban válaszd a „Mentés PDF-ként” célt.</span><button class="ov-btn" id="pdfbtn" type="button">⤓ PDF letöltése</button><button class="ov-btn ghost" id="ovclose" type="button">Bezárás</button></div>
+  </div>
+  <div class="ov-grid" id="ovgrid"></div>
+</div>
+<div id="print" aria-hidden="true"></div>
 <div class="bar" id="bar"></div>
 <nav class="chrome">
-  <span>← → lapozás · N előadói nézet · F teljes képernyő</span>
+  <span>← → lapozás · Esc összes dia · N előadói nézet · F teljes képernyő</span>
   <div class="right"><button id="bprev" aria-label="Előző">←</button><span id="count"></span><button id="bnext" aria-label="Következő">→</button></div>
 </nav>
 
@@ -836,6 +887,8 @@ body.idle .chrome { opacity: 0; }
   function onKey(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
+    if (ovOpen) return ovKey(e);
+    if (k === 'Escape' || k === 'o' || k === 'O') { e.preventDefault(); openOv(); return; }
     if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); next(); }
     else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); prev(); }
     else if (k === 'Home') go(0);
@@ -846,7 +899,7 @@ body.idle .chrome { opacity: 0; }
   }
   document.addEventListener('keydown', onKey);
   document.addEventListener('click', e => {
-    if (e.target.closest('a, button')) return;
+    if (ovOpen || e.target.closest('a, button')) return;
     if (e.clientX < innerWidth * 0.12) prev(); else next();
   });
   document.getElementById('bprev').onclick = prev;
@@ -877,6 +930,64 @@ body.idle .chrome { opacity: 0; }
     counter.textContent = '0';
     raf = requestAnimationFrame(tick);
   });
+
+  /* ---------- Áttekintés (Esc) és PDF: minden dia a végállapotában ---------- */
+  const ov = document.getElementById('ov'), ovGrid = document.getElementById('ovgrid'), printHost = document.getElementById('print');
+  let ovOpen = false, ovSel = 0;
+  // Egy dia másolata a végállapotában: minden lépés lefutott, a kártya a megoldás oldalán áll, a számlálók a végértéken.
+  function staticClone(i) {
+    const src = slides[i], c = src.cloneNode(true), max = stepsOf(src);
+    c.classList.add('active', 'static');
+    for (let k = 1; k <= max; k++) c.classList.add('step-' + k);
+    c.querySelectorAll('.notes').forEach(n => n.remove());
+    c.querySelectorAll('[data-count]').forEach(el => { el.textContent = el.dataset.count + (el.dataset.suffix || ''); });
+    c.querySelectorAll('#counter').forEach(el => { el.textContent = FINAL; });
+    c.querySelectorAll('[id]').forEach(el => { if (!el.closest('svg')) el.removeAttribute('id'); });
+    c.querySelectorAll('.brick[data-b], .mini [data-b]').forEach(el => el.classList.toggle('done', i + 1 >= SOLVED_ON[el.dataset.b]));
+    return c;
+  }
+  function sizeOv() { const f = ovGrid.querySelector('.tframe'); if (f) ov.style.setProperty('--ts', f.clientWidth / 1600); }
+  function markOv() { [...ovGrid.children].forEach((t, i) => t.classList.toggle('sel', i === ovSel)); }
+  function openOv() {
+    if (!ovGrid.children.length) slides.forEach((sl, i) => {
+      const b = document.createElement('button');
+      b.className = 'thumb'; b.type = 'button';
+      b.innerHTML = `<div class="tframe"><div class="tscale pagebg"></div></div><span class="cap"><b>${i + 1}</b>${sl.dataset.title}</span>`;
+      b.querySelector('.tscale').appendChild(staticClone(i));
+      b.onclick = () => { closeOv(); go(i); };
+      ovGrid.appendChild(b);
+    });
+    ovOpen = true; ovSel = cur; ov.classList.add('open'); document.body.classList.remove('idle');
+    sizeOv(); markOv();
+    ovGrid.children[ovSel].scrollIntoView({ block: 'nearest' });
+  }
+  function closeOv() { ovOpen = false; ov.classList.remove('open'); }
+  function ovKey(e) {
+    const k = e.key, n = slides.length, move = d => { ovSel = Math.max(0, Math.min(n - 1, ovSel + d)); markOv(); ovGrid.children[ovSel].scrollIntoView({ block: 'nearest' }); };
+    if (k === 'Escape' || k === 'o' || k === 'O') closeOv();
+    else if (k === 'Enter' || k === ' ') { closeOv(); go(ovSel); }
+    else if (k === 'ArrowRight') move(1); else if (k === 'ArrowLeft') move(-1);
+    else if (k === 'ArrowDown') move(4); else if (k === 'ArrowUp') move(-4);
+    else return;
+    e.preventDefault();
+  }
+  addEventListener('resize', () => { if (ovOpen) sizeOv(); });
+  document.getElementById('ovclose').onclick = closeOv;
+  function buildPrint() {
+    printHost.innerHTML = '';
+    slides.forEach((_, i) => { const pg = document.createElement('div'); pg.className = 'pdf-page pagebg'; pg.appendChild(staticClone(i)); printHost.appendChild(pg); });
+  }
+  async function exportPDF() {
+    buildPrint();
+    const title = document.title;
+    document.title = 'AI-nativ-kultura_Tamas-Peter'; // a böngésző ezt ajánlja fájlnévnek
+    try { await document.fonts.ready; } catch (e) {}
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const done = () => { printHost.innerHTML = ''; document.title = title; removeEventListener('afterprint', done); };
+    addEventListener('afterprint', done);
+    window.print();
+  }
+  document.getElementById('pdfbtn').onclick = exportPDF;
 
   /* ---------- Előadói nézet (külön ablak, a közönség nem látja) ---------- */
   const durs = slides.map(s => Number(s.dataset.dur) || 0);
@@ -941,7 +1052,7 @@ body.idle .chrome { opacity: 0; }
   const [h1, h2] = location.hash.slice(1).split('.').map(n => parseInt(n, 10));
   go((h1 || 1) - 1);
   if (h2) setStep(Math.min(h2, stepsOf(slides[cur])), true);
-  window.deck = { go, next, prev, setStep };
+  window.deck = { go, next, prev, setStep, openOv, closeOv, buildPrint };
 })();
 </script>
 </body>
