@@ -63,7 +63,7 @@ body.idle { cursor: none; }
 
 /* ---------- Stage ---------- */
 .viewport { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; }
-.stage { position: relative; width: 1600px; height: 900px; flex: none; transform-origin: center; }
+.stage { position: absolute; left: 50%; top: 50%; margin: -450px 0 0 -800px; width: 1600px; height: 900px; transform-origin: center; }
 .slide {
   position: absolute; inset: 0; padding: 64px 96px 72px;
   display: flex; flex-direction: column;
@@ -368,6 +368,36 @@ body.idle .chrome { opacity: 0; }
 .thumb .cap { display: block; margin-top: 9px; font-size: 14px; color: var(--muted); }
 .thumb .cap b { color: var(--fg); margin-right: 6px; }
 #print { display: none; }
+
+/* ---------- Mobil: álló telefonon görgethető olvasó nézet, fekve a vetítő nézet ---------- */
+.reader { position: fixed; inset: 0; z-index: 15; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; cursor: default; background: #070a16; padding: 0 12px calc(28px + env(safe-area-inset-bottom)); }
+body.reading .reader { display: block; }
+body.reading .viewport, body.reading .chrome, body.reading .bar, body.reading .backdrop { display: none; }
+.rd-head { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 -12px 14px; padding: calc(10px + env(safe-area-inset-top)) 14px 10px; background: rgba(7, 10, 22, .92); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line-strong); }
+.rd-head h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.rd-head p { margin: 2px 0 0; font-size: 12px; color: var(--muted); }
+.rd-head .ov-btn { font-size: 14px; padding: 9px 13px; border-radius: 10px; }
+.rd-item { margin: 0 0 18px; }
+.rd-item .tframe { border-width: 1px; border-radius: 10px; }
+.rd-item .cap { display: block; margin-top: 7px; font-size: 13px; color: var(--muted); }
+.rd-item .cap b { color: var(--fg); margin-right: 6px; }
+.rd-tip { margin: 6px 0 0; text-align: center; font-size: 13px; color: var(--muted); }
+.chrome .touch { display: none; }
+@media (hover: none) {
+  .chrome .keys { display: none; }
+  .chrome .touch { display: inline; }
+}
+@media (max-width: 950px) {
+  .ov { padding: 14px 14px 24px; }
+  .ov-head { flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+  .ov-head h3 { font-size: 17px; }
+  .ov-head .hint { display: none; }
+  .ov-btn { font-size: 14px; padding: 9px 13px; }
+  .ov-grid { grid-template-columns: repeat(3, 1fr); gap: 14px 12px; }
+  .thumb .cap { font-size: 12px; }
+  .chrome { padding: 4px 10px; }
+}
+@media (max-width: 560px) { .ov-grid { grid-template-columns: repeat(2, 1fr); } }
 /* PDF: a ragyogást (elmosott árnyék) és a színátmenetes szöveget több PDF-olvasó hibásan, tömör téglalapként rajzolja ki */
 .pdf-page *, .pdf-page *::before, .pdf-page *::after { text-shadow: none !important; box-shadow: none !important; filter: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 .pdf-page .gt { background: none; -webkit-text-fill-color: currentColor; color: var(--pink); }
@@ -380,6 +410,7 @@ body.idle .chrome { opacity: 0; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   html, body { height: auto; overflow: visible; background: #090d1c; }
   body > *:not(#print) { display: none !important; }
+  html, body { overflow: visible !important; }
   #print { display: block; }
   .pdf-page { position: relative; width: 1600px; height: 900px; overflow: hidden; break-after: page; page-break-after: always; }
   .pdf-page:last-child { break-after: auto; page-break-after: auto; }
@@ -676,11 +707,20 @@ body.idle .chrome { opacity: 0; }
   </div>
   <div class="ov-grid" id="ovgrid"></div>
 </div>
+<div class="reader" id="reader">
+  <div class="rd-head">
+    <div><h3>AI-natív kultúra</h3><p>Tamás Péter · 13 dia · görgess lefelé</p></div>
+    <button class="ov-btn" id="rdpdf" type="button">⤓ PDF</button>
+  </div>
+  <div id="rdlist"></div>
+  <p class="rd-tip">Fordítsd el a telefont az animált, lapozható nézethez.</p>
+</div>
 <div id="print" aria-hidden="true"></div>
 <div class="bar" id="bar"></div>
 <nav class="chrome">
-  <span>← → lapozás · Esc összes dia · N előadói nézet · F teljes képernyő</span>
-  <div class="right"><button id="bprev" aria-label="Előző">←</button><span id="count"></span><button id="bnext" aria-label="Következő">→</button></div>
+  <span class="keys">← → lapozás · Esc összes dia · N előadói nézet · F teljes képernyő</span>
+  <span class="touch">Koppints vagy húzd el a lapozáshoz</span>
+  <div class="right"><button id="bov" class="touch" type="button">▦ Összes dia</button><button id="bprev" aria-label="Előző">←</button><span id="count"></span><button id="bnext" aria-label="Következő">→</button></div>
 </nav>
 
 <script>
@@ -887,6 +927,7 @@ body.idle .chrome { opacity: 0; }
   function onKey(e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key;
+    if (reading) return;
     if (ovOpen) return ovKey(e);
     if (k === 'Escape' || k === 'o' || k === 'O') { e.preventDefault(); openOv(); return; }
     if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); next(); }
@@ -899,17 +940,22 @@ body.idle .chrome { opacity: 0; }
   }
   document.addEventListener('keydown', onKey);
   document.addEventListener('click', e => {
-    if (ovOpen || e.target.closest('a, button')) return;
+    if (ovOpen || reading || e.target.closest('a, button')) return;
     if (e.clientX < innerWidth * 0.12) prev(); else next();
   });
   document.getElementById('bprev').onclick = prev;
   document.getElementById('bnext').onclick = next;
-  let tx = null;
-  addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-  addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) (dx < 0 ? next : prev)(); tx = null; });
+  let tx = null, ty = 0;
+  addEventListener('touchstart', e => { wake(); tx = e.touches.length === 1 ? e.touches[0].clientX : null; ty = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (tx === null || ovOpen || reading) { tx = null; return; }
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) (dx < 0 ? next : prev)();
+    tx = null;
+  });
 
   function fit() { stage.style.transform = `scale(${Math.min(innerWidth / 1600, innerHeight / 900)})`; }
-  addEventListener('resize', fit); fit();
+  addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250)); fit();
   let idleT;
   function wake() { document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => document.body.classList.add('idle'), 2500); }
   addEventListener('mousemove', wake); wake();
@@ -973,6 +1019,41 @@ body.idle .chrome { opacity: 0; }
   }
   addEventListener('resize', () => { if (ovOpen) sizeOv(); });
   document.getElementById('ovclose').onclick = closeOv;
+  document.getElementById('bov').onclick = openOv;
+
+  /* ---------- Mobil olvasó nézet: álló, keskeny képernyőn a diák egymás alatt, végállapotban ---------- */
+  const reader = document.getElementById('reader'), rdList = document.getElementById('rdlist');
+  const portraitMQ = matchMedia('(orientation: portrait) and (max-width: 820px)');
+  var reading = false;
+  function sizeReader() { const f = rdList.querySelector('.tframe'); if (f) reader.style.setProperty('--ts', f.clientWidth / 1600); }
+  function syncReader() {
+    const want = portraitMQ.matches;
+    if (want === reading) { if (reading) sizeReader(); return; }
+    if (want) {
+      if (!rdList.children.length) slides.forEach((sl, i) => {
+        const d = document.createElement('div');
+        d.className = 'rd-item';
+        d.innerHTML = `<div class="tframe"><div class="tscale pagebg"></div></div><span class="cap"><b>${i + 1}</b>${sl.dataset.title}</span>`;
+        d.querySelector('.tscale').appendChild(staticClone(i));
+        rdList.appendChild(d);
+      });
+      if (ovOpen) closeOv();
+      reading = true; lastRead = cur; document.body.classList.add('reading');
+      sizeReader();
+      if (cur > 0) rdList.children[cur].scrollIntoView({ block: 'center' });
+    } else {
+      // visszaforgatáskor azon a dián folytatjuk, amelyik épp középen volt
+      reading = false; document.body.classList.remove('reading');
+      go(lastRead); fit();
+    }
+  }
+  let lastRead = 0;
+  reader.addEventListener('scroll', () => {
+    const mid = innerHeight / 2; let bd = Infinity;
+    [...rdList.children].forEach((el, i) => { const r = el.getBoundingClientRect(); const dd = Math.abs((r.top + r.bottom) / 2 - mid); if (dd < bd) { bd = dd; lastRead = i; } });
+  }, { passive: true });
+  portraitMQ.addEventListener ? portraitMQ.addEventListener('change', syncReader) : portraitMQ.addListener(syncReader);
+  addEventListener('resize', () => { if (reading) sizeReader(); });
   function buildPrint() {
     printHost.innerHTML = '';
     slides.forEach((_, i) => { const pg = document.createElement('div'); pg.className = 'pdf-page pagebg'; pg.appendChild(staticClone(i)); printHost.appendChild(pg); });
@@ -988,6 +1069,7 @@ body.idle .chrome { opacity: 0; }
     window.print();
   }
   document.getElementById('pdfbtn').onclick = exportPDF;
+  document.getElementById('rdpdf').onclick = exportPDF;
 
   /* ---------- Előadói nézet (külön ablak, a közönség nem látja) ---------- */
   const durs = slides.map(s => Number(s.dataset.dur) || 0);
@@ -1053,6 +1135,7 @@ body.idle .chrome { opacity: 0; }
   go((h1 || 1) - 1);
   if (h2) setStep(Math.min(h2, stepsOf(slides[cur])), true);
   window.deck = { go, next, prev, setStep, openOv, closeOv, buildPrint };
+  syncReader();
 })();
 </script>
 </body>
