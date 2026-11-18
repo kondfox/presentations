@@ -63,7 +63,7 @@ body.idle { cursor: none; }
 
 /* ---------- Stage ---------- */
 .viewport { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; }
-.stage { position: relative; width: 1600px; height: 900px; flex: none; transform-origin: center; }
+.stage { position: absolute; left: 50%; top: 50%; margin: -450px 0 0 -800px; width: 1600px; height: 900px; transform-origin: center; }
 .slide {
   position: absolute; inset: 0; padding: 64px 96px 72px;
   display: flex; flex-direction: column;
@@ -656,6 +656,34 @@ code { font-family: var(--mono); }
 .chrome .right { display: flex; gap: 4px; align-items: center; }
 body.idle .chrome { opacity: 0; }
 
+/* ---------- Érintőképernyő (telefon, tablet): gombokkal és húzással lapozható ---------- */
+.chrome .tbtn, .rot { display: none; }
+body.touch { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+body.touch .viewport { inset: 0 0 66px 0; }
+body.touch .chrome { height: 60px; padding: 0 10px; justify-content: center; opacity: 1; }
+body.touch .chrome > span { display: none; }
+body.touch .chrome .right { gap: 8px; }
+body.touch .chrome button { display: grid; place-items: center; min-width: 50px; height: 44px; padding: 0; font-size: 21px; line-height: 1; color: var(--fg); background: rgba(255, 255, 255, .09); border-radius: 12px; }
+body.touch .chrome button:active { background: rgba(255, 255, 255, .22); }
+body.touch #count { min-width: 66px; text-align: center; font-size: 15px; color: var(--muted); }
+body.touch .rot { display: none; position: fixed; left: 0; right: 0; bottom: 92px; z-index: 4; text-align: center; font-size: 14px; color: var(--faint); pointer-events: none; }
+@media (max-aspect-ratio: 3/4) { body.touch .rot { display: block; } }
+/* fekvő telefon: a dia a teljes magasságot megkapja, a gombok jobb oldalt, egymás alatt */
+@media (min-aspect-ratio: 16/9) {
+  body.touch .viewport { inset: 0 58px 0 0; }
+  body.touch .chrome { left: auto; top: 0; bottom: 5px; width: 58px; height: auto; padding: 0; }
+  body.touch .chrome .right { flex-direction: column; gap: 6px; }
+  body.touch .chrome button { min-width: 46px; height: 42px; }
+  body.touch #count { min-width: 0; font-size: 12px; }
+}
+@media (max-width: 760px) {
+  .ov { padding: 16px 14px 24px; }
+  .ov-head { flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+  .ov-head .hint { display: none; }
+  .ov-grid { grid-template-columns: repeat(2, 1fr); gap: 14px 12px; }
+  .thumb .cap { font-size: 12px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: .01ms !important; transition-delay: 0s !important; }
 }
@@ -1209,8 +1237,9 @@ body.idle .chrome { opacity: 0; }
 <div class="bar" id="bar"></div>
 <nav class="chrome">
   <span>← → lapozás · Esc összes dia · N előadói nézet · F teljes képernyő</span>
-  <div class="right"><button id="bprev" aria-label="Előző">←</button><span id="count"></span><button id="bnext" aria-label="Következő">→</button></div>
+  <div class="right"><button class="tbtn" id="bov" aria-label="Összes dia">▦</button><button class="tbtn" id="bfs" aria-label="Teljes képernyő">⛶</button><button id="bprev" aria-label="Előző">←</button><span id="count"></span><button id="bnext" aria-label="Következő">→</button></div>
 </nav>
+<div class="rot">↻ Fordítsd el a telefont a nagyobb nézethez</div>
 
 <script src="assets/qrcode.min.js"></script>
 <script>
@@ -1220,6 +1249,8 @@ body.idle .chrome { opacity: 0; }
   const stage = document.getElementById('stage');
   const countEl = document.getElementById('count');
   const bar = document.getElementById('bar');
+  const TOUCH = matchMedia('(hover: none) and (pointer: coarse)').matches || /[?&]touch\b/.test(location.search);
+  document.body.classList.toggle('touch', TOUCH);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ---------- Workflow-ábra: „Így készül egy ajánlat", Excalidraw-stílusban ---------- */
@@ -1423,7 +1454,7 @@ body.idle .chrome { opacity: 0; }
   document.querySelectorAll('.slide[data-site]').forEach(s => {
     s.addEventListener('slideenter', () => {
       const view = s.querySelector('.bview'), frame = s.querySelector('.bframe');
-      if (view.querySelector('iframe')) return;
+      if (TOUCH || view.querySelector('iframe')) return; // érintőképernyőn a képernyőkép marad: az iframe elnyelné a húzást
       const f = document.createElement('iframe');
       f.src = s.dataset.site; f.loading = 'eager'; f.title = s.dataset.title;
       f.onload = () => frame.classList.add('loaded');
@@ -1824,18 +1855,29 @@ document.querySelectorAll('.slide[data-anim]').forEach(s => {
   document.addEventListener('keydown', onKey);
   document.addEventListener('click', e => {
     if (ovOpen || e.target.closest('a, button, [data-noclick]')) return;
-    if (e.clientX < innerWidth * 0.12) prev(); else next();
+    if (e.clientX < innerWidth * (TOUCH ? 0.3 : 0.12)) prev(); else next();
   });
   document.getElementById('bprev').onclick = prev;
   document.getElementById('bnext').onclick = next;
-  let tx = null;
-  addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-  addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 50) (dx < 0 ? next : prev)(); tx = null; });
+  document.getElementById('bov').onclick = () => openOv();
+  const bfs = document.getElementById('bfs');
+  if (document.fullscreenEnabled) bfs.onclick = () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen().catch(() => {}); };
+  else bfs.remove(); // iPhone-on nincs teljes képernyős mód
+  // Húzás: csak a vízszintes, és csak ha nincs ránagyítva a dia
+  let tx = null, ty = 0;
+  addEventListener('touchstart', e => { tx = e.touches.length === 1 ? e.touches[0].clientX : null; ty = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchend', e => {
+    if (tx === null) return;
+    const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
+    if (ovOpen || (window.visualViewport && visualViewport.scale > 1.05)) return;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) (dx < 0 ? next : prev)();
+  });
 
-  function fit() { stage.style.transform = `scale(${Math.min(innerWidth / 1600, innerHeight / 900)})`; }
-  addEventListener('resize', fit); fit();
+  const vp = document.querySelector('.viewport');
+  function fit() { stage.style.transform = `scale(${Math.min(vp.clientWidth / 1600, vp.clientHeight / 900)})`; }
+  addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250)); fit();
   let idleT;
-  function wake() { document.body.classList.remove('idle'); clearTimeout(idleT); idleT = setTimeout(() => document.body.classList.add('idle'), 2500); }
+  function wake() { document.body.classList.remove('idle'); clearTimeout(idleT); if (TOUCH) return; idleT = setTimeout(() => document.body.classList.add('idle'), 2500); }
   addEventListener('mousemove', wake); wake();
 
   /* ---------- Áttekintés (Esc) és PDF: minden dia a végállapotában ---------- */
